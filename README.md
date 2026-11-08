@@ -2,7 +2,7 @@
 
 Carte 3D des parcours de kayak en Wallonie : état du jour, débit en direct, sens du courant, prévision indicative sur 3 jours, aires d'embarquement et alertes push.
 
-Interface reprise de [GPX 3D](https://github.com/skycrow2-cloud/gpx-3d-viewer) : MapLibre GL, relief ×1,6, photo aérienne Esri / OpenTopoMap / OpenStreetMap.
+Interface reprise de [GPX 3D](https://github.com/skycrow2-cloud/gpx-3d-viewer) : MapLibre GL, relief ×1,6, photo aérienne Esri ou OpenStreetMap.
 
 Le site est hébergé gratuitement par GitHub. Toutes les heures, une tâche automatique récupère les données et republie le site.
 

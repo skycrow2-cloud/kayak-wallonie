@@ -14,7 +14,7 @@
 /* Charte reprise de GPX 3D : interface sombre en verre, accent orange « balise de sentier », eau en turquoise */
 :root{
   --ctl:40px;
-  --bg:#0e1217; --panel-solid:rgba(20,25,31,.82); --panel-border:#2a323c; --field-bg:#1b222a;
+  --bg:#0e1217; --panel-solid:rgba(20,25,34,.58); --panel-border:#2a323c; --field-bg:#1b222a;
   --text:#eeeae1; --text-muted:#8b93a1; --muted-2:#5d6672;
   --accent:#e8a33d; --accent-soft:rgba(232,163,61,.16);
   --accent-2:#49b6c4; --accent-2-soft:rgba(73,182,196,.16);
@@ -35,56 +35,56 @@ button{font:inherit;color:inherit}
 
 /* ---------- panneau ---------- */
 #panel{position:fixed;z-index:3;top:0;left:0;bottom:0;width:var(--panel-w);overflow-y:auto;overscroll-behavior:contain;
-  background:var(--panel-solid);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  background:var(--panel-solid);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);transition:transform .22s ease;
   border-right:1px solid var(--panel-border);padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
 .brand{display:flex;align-items:center;gap:10px}
-.brand img{width:30px;height:30px;border-radius:7px}
-.brand h1{font-size:17px;font-weight:700;margin:0;letter-spacing:.01em}
+.brand img{width:28px;height:28px}
+.brand h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.01em}
 .brand .maj{margin-left:auto;font-size:11.5px;color:var(--text-muted);font-variant-numeric:tabular-nums;text-align:right}
 .filters{display:flex;gap:6px;flex-wrap:wrap}
-.chip{font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:999px;border:1px solid var(--panel-border);background:var(--field-bg);cursor:pointer}
+.chip{font-size:12px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(27,34,44,.4);cursor:pointer}
 .chip:hover{border-color:#3a4450}
 .chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-.summary{font-size:15px;font-weight:600;margin:2px 0 0}
+.summary{font-size:14px;font-weight:500;margin:2px 0 0}
 .summary b{color:var(--accent);font-variant-numeric:tabular-nums}
 .notice{padding:8px 10px;border-radius:var(--radius);border:1px solid rgba(242,201,76,.4);background:rgba(242,201,76,.1);font-size:12.5px;line-height:1.45}
 ul.list{list-style:none;margin:0 -8px;padding:0}
 .row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 8px;border-radius:var(--radius);cursor:pointer;align-items:center}
 .row:hover,.row.hl{background:rgba(255,255,255,.04)}
 .row + .row{border-top:1px solid var(--panel-border)}
-.row .name{font-size:15px;font-weight:700}
+.row .name{font-size:14.5px;font-weight:600}
 .row .sub{grid-column:1/-1;font-size:12.5px;color:var(--text-muted);line-height:1.4}
 .row .gauge{grid-column:1/-1;margin-top:4px}
-.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
-.badge::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
 .s-ouvert{color:var(--ok)} .s-ferme{color:var(--text-muted)} .s-risque{color:var(--warn)} .s-possible{color:var(--accent-2)} .s-saison{color:var(--muted-2)}
 
 /* jauge : bande turquoise = débits autorisés, curseur orange = débit actuel */
 .gauge{position:relative;height:26px}
-.gauge .track{position:absolute;left:0;right:0;top:8px;height:8px;border-radius:4px;background:var(--chart-bg);border:1px solid var(--chart-grid)}
-.gauge .band{position:absolute;top:8px;height:8px;background:var(--accent-2);opacity:.75;border-radius:2px}
-.gauge .mark{position:absolute;top:2px;width:4px;height:20px;margin-left:-2px;background:var(--accent);border-radius:2px;box-shadow:0 0 0 2px rgba(14,18,23,.9)}
+.gauge .track{position:absolute;left:0;right:0;top:10px;height:4px;border-radius:2px;background:rgba(255,255,255,.1)}
+.gauge .band{position:absolute;top:10px;height:4px;background:var(--accent-2);opacity:.75;border-radius:2px}
+.gauge .mark{position:absolute;top:4px;width:2px;height:16px;margin-left:-1px;background:var(--accent);border-radius:2px;box-shadow:0 0 0 1.5px rgba(14,18,23,.8)}
 .gauge .lab{position:absolute;top:17px;font-size:10.5px;color:var(--text-muted);transform:translateX(-50%);white-space:nowrap;font-variant-numeric:tabular-nums}
 .gauge.big{height:36px}
-.gauge.big .track,.gauge.big .band{top:10px;height:12px}
-.gauge.big .mark{top:3px;height:26px;width:5px}
+.gauge.big .track,.gauge.big .band{top:12px;height:6px}
+.gauge.big .mark{top:5px;height:20px;width:3px;margin-left:-1.5px}
 .gauge.big .lab{top:25px;font-size:11px}
 
 /* fiche */
 .back{align-self:flex-start;background:none;border:0;color:var(--accent);font-size:13px;font-weight:600;padding:2px 0;cursor:pointer}
-.fiche h2{font-size:22px;margin:4px 0 2px}
+.fiche h2{font-size:21px;font-weight:600;margin:4px 0 2px}
 .fiche .where{font-size:13px;color:var(--text-muted);margin:0}
-.card{border:1px solid var(--panel-border);background:rgba(27,34,42,.55);border-radius:10px;padding:12px}
+.card{border:1px solid rgba(255,255,255,.07);background:rgba(27,34,44,.32);border-radius:10px;padding:12px}
 .card h3{font-size:12.5px;font-weight:600;color:var(--text-muted);margin:0 0 8px}
-.big-q{font-size:30px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;margin:6px 0 0}
+.big-q{font-size:28px;font-weight:500;color:var(--accent);font-variant-numeric:tabular-nums;margin:6px 0 0}
 .big-q small{font-size:14px;color:var(--text-muted);font-weight:500}
 .meta{font-size:11.5px;color:var(--text-muted);margin:2px 0 6px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
 .stat{display:flex;flex-direction:column;line-height:1.25}
 .stat .l{font-size:10.5px;color:var(--text-muted)}
-.stat .v{font-size:15px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.stat .v{font-size:14.5px;font-weight:500;color:var(--accent);font-variant-numeric:tabular-nums}
 .days{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
-.day{padding:6px 2px;border-radius:var(--radius);background:var(--field-bg)}
+.day{padding:6px 2px;border-radius:var(--radius);background:rgba(27,34,44,.4)}
 .day .d{font-size:11px;color:var(--text-muted)} .day .i{font-size:20px;line-height:1.4} .day .r{font-size:13px;font-weight:600;color:var(--accent-2);font-variant-numeric:tabular-nums}
 .outlook{margin-top:10px;padding:9px 10px;border-radius:var(--radius);border-left:3px solid var(--accent-2);background:var(--accent-2-soft);font-size:13px}
 .outlook.o-ouvert{border-color:var(--ok);background:rgba(76,195,138,.12)} .outlook.o-ferme{border-color:var(--text-muted);background:rgba(139,147,161,.1)} .outlook.o-risque{border-color:var(--warn);background:rgba(242,201,76,.1)}
@@ -99,50 +99,63 @@ ul.list{list-style:none;margin:0 -8px;padding:0}
 .desc{white-space:pre-line;font-size:13px;line-height:1.55;color:#d5d1c8}
 .desc.short{max-height:8.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 55%,transparent)}
 .link{color:var(--accent);font-weight:600;background:none;border:0;padding:0;cursor:pointer;font-size:13px;text-decoration:none}
-svg.spark{width:100%;height:96px;display:block;background:var(--chart-bg);border-radius:6px}
+svg.spark{width:100%;height:96px;display:block;background:rgba(14,18,23,.35);border-radius:6px}
 .btn{display:inline-block;font-size:13.5px;font-weight:600;border-radius:var(--radius);padding:8px 12px;text-decoration:none;cursor:pointer;background:var(--accent);color:#231705;border:1px solid var(--accent)}
 .star{background:none;border:1px solid var(--panel-border);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-muted)}
 .star[aria-pressed=true]{color:var(--accent);border-color:var(--accent)}
 
 /* ---------- commandes de carte en verre ---------- */
-.ctl-stack{position:fixed;z-index:2;top:calc(10px + env(safe-area-inset-top));right:10px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.ctl-stack{position:fixed;z-index:2;top:calc(10px + env(safe-area-inset-top));right:10px;width:var(--ctl);display:flex;flex-direction:column;gap:8px;align-items:center}
+.ctl-stack > *{width:var(--ctl)}
 .pill,.zoom-bar{background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .zoom-bar{display:flex;flex-direction:column;width:var(--ctl);border-radius:calc(var(--ctl)/2);overflow:hidden}
-.zoom-btn{width:100%;height:calc(var(--ctl) - 2px);border:0;background:transparent;color:var(--accent);font-size:21px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.zoom-btn{width:100%;height:calc(var(--ctl) - 2px);border:0;background:transparent;color:var(--accent);font-size:0;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .zoom-btn + .zoom-btn{border-top:1px solid rgba(255,255,255,.12)}
 .zoom-btn:hover{background:rgba(232,163,61,.18)}
-.pill{width:var(--ctl);height:var(--ctl);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);cursor:pointer;padding:0;font-size:12px;font-weight:700}
+.pill{width:var(--ctl);height:var(--ctl);flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);cursor:pointer;padding:0;font-size:12px;font-weight:700}
 .pill:hover{background:var(--glass-hover)}
 #compass svg{transition:transform .1s linear}
 .menu{position:relative}
-.menu-pop{position:absolute;right:calc(var(--ctl) + 8px);top:0;min-width:170px;padding:6px;border-radius:8px;background:var(--glass-strong);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--glass-border);box-shadow:0 6px 20px rgba(0,0,0,.5);display:none}
+.menu-pop{position:absolute;right:calc(var(--ctl) + 8px);top:0;min-width:170px;padding:6px;border-radius:10px;background:rgba(20,25,34,.6);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:0 6px 20px rgba(0,0,0,.5);display:none}
 .menu-pop.open{display:block}
 .menu-pop button{display:flex;width:100%;align-items:center;gap:8px;padding:7px 8px;border:0;background:none;border-radius:5px;font-size:12.5px;cursor:pointer;text-align:left}
 .menu-pop button:hover{background:rgba(232,163,61,.15)}
 .menu-pop button[aria-checked=true]{color:var(--accent)}
 .menu-pop hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:4px 0}
-#pitch-control{position:fixed;z-index:2;right:10px;bottom:40px;width:var(--ctl);height:130px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+#pitch-control{position:fixed;z-index:2;right:10px;bottom:58px;width:var(--ctl);height:130px;border-radius:999px;display:flex;align-items:center;justify-content:center}
 #pitch-slider{width:110px;height:22px;transform:rotate(-90deg);accent-color:var(--accent);cursor:pointer}
-.maplibregl-ctrl-attrib{font-size:10px;background:transparent!important}
-.maplibregl-ctrl-attrib a{color:var(--text-muted);text-shadow:0 1px 3px rgba(0,0,0,.65)}
-.maplibregl-ctrl-attrib-button{background-color:rgba(30,37,48,.6)!important;filter:invert(1)}
-.maplibregl-ctrl-bottom-right{right:58px}
-.lbl{padding:2px 8px;border-radius:10px;background:var(--glass-strong);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid var(--glass-border);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;box-shadow:var(--glass-shadow)}
-.lbl i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.attrib-pop{position:fixed;z-index:3;right:calc(10px + var(--ctl) + 8px);bottom:10px;max-width:min(420px,calc(100vw - 80px));padding:8px 12px;border-radius:10px;font-size:11px;line-height:1.5;color:var(--text-muted);
+  background:rgba(20,25,34,.6);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+.attrib-pop a{color:var(--text-muted)}
+#info{position:fixed;z-index:2;right:10px;bottom:10px}
+.lbl{padding:1px 7px;border-radius:9px;background:rgba(20,25,34,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(232,163,61,.3);font-size:11.5px;font-weight:500;white-space:nowrap;cursor:pointer;box-shadow:var(--glass-shadow)}
+.lbl i{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:1px}
 .maplibregl-popup-content{background:var(--glass-strong);color:var(--text);border:1px solid var(--glass-border);border-radius:10px;padding:6px 10px;font-size:12.5px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .maplibregl-popup-tip{display:none}
 
-#panel-toggle{display:none}
+#panel-toggle{position:fixed;z-index:4;top:50%;left:var(--panel-w);transform:translateY(-50%);width:20px;height:56px;padding:0;border:1px solid var(--glass-border);border-left:0;border-radius:0 8px 8px 0;
+  display:flex;align-items:center;justify-content:center;background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--accent);cursor:pointer;transition:left .22s ease}
+#panel-toggle:hover{background:var(--glass-hover)}
+#panel-toggle svg{transition:transform .2s ease}
+body.panel-hidden #panel{transform:translateX(-100%)}
+body.panel-hidden #panel-toggle{left:0}
+body.panel-hidden #panel-toggle svg{transform:rotate(180deg)}
 @media (max-width:760px){
   :root{--panel-w:100vw}
   #panel{top:auto;height:48dvh;width:100%;border-right:0;border-top:1px solid var(--panel-border);border-radius:14px 14px 0 0;transition:height .2s ease}
   body.panel-small #panel{height:96px;overflow:hidden}
-  #panel-toggle{display:flex;position:absolute;left:50%;transform:translateX(-50%);top:4px;width:56px;height:18px;border:0;background:none;padding:0;justify-content:center;cursor:pointer}
-  #panel-toggle::before{content:'';width:40px;height:5px;border-radius:3px;background:var(--muted-2)}
+  #panel-toggle{position:absolute;left:50%!important;transform:translateX(-50%);top:4px;width:56px;height:18px;border:0;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;justify-content:center}
+  #panel-toggle svg{display:none}
+  #panel-toggle::before{content:'';width:40px;height:4px;border-radius:2px;background:var(--muted-2)}
+  body.panel-hidden #panel{transform:none}
   #panel{padding-top:22px}
-  #pitch-control{bottom:calc(48dvh + 12px)}
-  body.panel-small #pitch-control{bottom:108px}
-  .maplibregl-ctrl-bottom-right{display:none}
+  #panel-toggle{position:fixed;top:auto;bottom:calc(48dvh - 22px);z-index:5}
+  body.panel-small #panel-toggle{bottom:74px}
+  #pitch-control{bottom:calc(48dvh + 60px)}
+  body.panel-small #pitch-control{bottom:156px}
+  #info{bottom:calc(48dvh + 12px)}
+  body.panel-small #info{bottom:108px}
+  .attrib-pop{bottom:calc(48dvh + 12px)}
 }
 @media (prefers-reduced-motion:reduce){#panel{transition:none}}
 </style>
@@ -150,8 +163,8 @@ svg.spark{width:100%;height:96px;display:block;background:var(--chart-bg);border
 <body>
 <div id="map" role="region" aria-label="Carte des parcours"></div>
 
+<button id="panel-toggle" aria-label="Masquer ou afficher le panneau"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
 <aside id="panel" aria-label="Parcours">
-  <button id="panel-toggle" aria-label="Agrandir ou réduire le panneau"></button>
   <div class="brand"><img src="icon.svg" alt=""><h1>Kayak Wallonie</h1><span class="maj" id="maj">Chargement…</span></div>
   <div id="view-list" style="display:flex;flex-direction:column;gap:12px">
     <div class="filters" role="toolbar" aria-label="Filtres">
@@ -167,20 +180,21 @@ svg.spark{width:100%;height:96px;display:block;background:var(--chart-bg);border
 </aside>
 
 <div class="ctl-stack">
-  <div class="zoom-bar"><button class="zoom-btn" id="zin" aria-label="Zoomer">+</button><button class="zoom-btn" id="zout" aria-label="Dézoomer">−</button></div>
-  <button class="pill" id="compass" aria-label="Remettre le nord en haut et la carte à plat"><svg width="22" height="22" viewBox="0 0 29 29"><path fill="#e5383b" d="m10.5 14 4-8 4 8h-8z"/><path fill="#d9dde3" d="m10.5 16 4 8 4-8h-8z"/></svg></button>
+  <div class="zoom-bar"><button class="zoom-btn" id="zin" aria-label="Zoomer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button><button class="zoom-btn" id="zout" aria-label="Dézoomer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button></div>
+  <button class="pill" id="compass" aria-label="Remettre le nord en haut et la carte à plat"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 3l3.2 9h-6.4z" fill="#e5383b"/><path d="M12 21l-3.2-9h6.4z" fill="#d9dde3"/></svg></button>
   <div class="menu">
-    <button class="pill" id="basemap-btn" aria-haspopup="true" aria-expanded="false" aria-label="Fond de carte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
+    <button class="pill" id="basemap-btn" aria-haspopup="true" aria-expanded="false" aria-label="Fond de carte"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
     <div class="menu-pop" id="basemap-pop" role="menu">
       <button role="menuitemradio" data-bm="aerial">Photo aérienne</button>
-      <button role="menuitemradio" data-bm="opentopo">Plan randonnée</button>
       <button role="menuitemradio" data-bm="osm">OpenStreetMap</button>
       <hr>
       <button role="menuitemcheckbox" id="terrain-btn">Relief 3D</button>
     </div>
   </div>
-  <button class="pill" id="locate" aria-label="Me localiser"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+  <button class="pill" id="locate" aria-label="Me localiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg></button>
 </div>
+<button class="pill" id="info" aria-label="Sources et crédits" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+<div class="attrib-pop" id="attrib" hidden></div>
 <div id="pitch-control" class="pill" style="border-radius:999px"><input id="pitch-slider" type="range" min="0" max="75" value="0" aria-label="Inclinaison de la vue"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.js"></script>
@@ -240,7 +254,6 @@ const shortName = t => t.nom.replace(/^(La|Le|L')\s?[^,]*?(,\s*|\s(?=de |entre |
 // ---------- Carte (MapLibre, relief 3D comme GPX 3D) ----------
 const BASEMAPS = {
   aerial: { tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], maxzoom:19, attribution:'Imagerie © Esri, Maxar, Earthstar Geographics' },
-  opentopo: { tiles:['https://a.tile.opentopomap.org/{z}/{x}/{y}.png','https://b.tile.opentopomap.org/{z}/{x}/{y}.png','https://c.tile.opentopomap.org/{z}/{x}/{y}.png'], maxzoom:17, attribution:'© OpenStreetMap, SRTM · Style © OpenTopoMap (CC-BY-SA)' },
   osm: { tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], maxzoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
 };
 let basemap = store.get('basemap', 'aerial'); if (!BASEMAPS[basemap]) basemap = 'aerial';
@@ -258,12 +271,12 @@ const map = new maplibregl.Map({
     terrain: terrainOn ? { source:'terrainSource', exaggeration:1.6 } : undefined,
     sky:{ 'sky-color':'#0b1a2a', 'horizon-color':'#3a4a5a', 'fog-color':'#0e1217', 'fog-ground-blend':0.5, 'sky-horizon-blend':0.5, 'horizon-fog-blend':0.6 },
   },
-  center:[5.35, 50.05], zoom:7.6, maxPitch:80, attributionControl:{ compact:true },
+  center:[5.35, 50.05], zoom:7.6, maxPitch:80, attributionControl:false,
 });
 map.getCanvas().addEventListener('contextmenu', e => e.preventDefault());
 const panelPad = () => matchMedia('(max-width:760px)').matches
   ? { top:40, left:30, right:60, bottom: document.body.classList.contains('panel-small') ? 110 : innerHeight * .48 + 20 }
-  : { top:50, bottom:50, right:70, left: 380 + 40 };
+  : { top:50, bottom:50, right:70, left: document.body.classList.contains('panel-hidden') ? 50 : 380 + 40 };
 
 // commandes
 $('#zin').onclick = () => map.zoomIn(); $('#zout').onclick = () => map.zoomOut();
@@ -278,6 +291,12 @@ function syncMenu(){ pop.querySelectorAll('[data-bm]').forEach(b => b.setAttribu
 pop.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => { basemap = b.dataset.bm; store.set('basemap', basemap); for (const k in BASEMAPS) map.setLayoutProperty(k, 'visibility', k === basemap ? 'visible' : 'none'); syncMenu(); });
 $('#terrain-btn').onclick = () => { terrainOn = !terrainOn; store.set('terrain', terrainOn); map.setTerrain(terrainOn ? { source:'terrainSource', exaggeration:1.6 } : null); map.setLayoutProperty('hillshade', 'visibility', terrainOn ? 'visible' : 'none'); syncMenu(); };
 syncMenu();
+function credits(){
+  const used = [BASEMAPS[basemap].attribution, terrainOn ? 'Relief © AWS Open Data / Mapzen' : null, 'Données © SPW (Infokayak, hydrométrie) · Météo Open-Meteo · Rendu MapLibre'].filter(Boolean);
+  $('#attrib').innerHTML = used.join('<br>');
+}
+$('#info').onclick = e => { e.stopPropagation(); credits(); const h = $('#attrib').hidden = !$('#attrib').hidden; $('#info').setAttribute('aria-expanded', !h); };
+document.addEventListener('click', e => { if (!$('#attrib').contains(e.target)) $('#attrib').hidden = true; });
 let meMarker = null;
 function locate(cb){
   navigator.geolocation?.getCurrentPosition(p => {
@@ -294,8 +313,8 @@ function arrowImage(){
   const s = 2, w = 22 * s, h = 22 * s, c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d'); g.lineJoin = 'round'; g.lineCap = 'round';
   const chev = () => { g.beginPath(); g.moveTo(7*s, 5*s); g.lineTo(15*s, 11*s); g.lineTo(7*s, 17*s); };
-  chev(); g.strokeStyle = 'rgba(14,18,23,.85)'; g.lineWidth = 6*s; g.stroke();
-  chev(); g.strokeStyle = '#ffffff'; g.lineWidth = 2.6*s; g.stroke();
+  chev(); g.strokeStyle = 'rgba(14,18,23,.7)'; g.lineWidth = 4.2*s; g.stroke();
+  chev(); g.strokeStyle = '#ffffff'; g.lineWidth = 1.8*s; g.stroke();
   return { width:w, height:h, data:g.getImageData(0, 0, w, h).data };
 }
 
@@ -315,12 +334,12 @@ function addData(){
   map.addSource('flow', { type:'geojson', data:{ type:'FeatureCollection', features:arrows } });
   map.addSource('aires', { type:'geojson', data:{ type:'FeatureCollection', features:aires } });
   map.addImage('flow-arrow', arrowImage(), { pixelRatio:2 });
-  map.addLayer({ id:'river-glow', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 9, 13, 18], 'line-opacity':0.22, 'line-blur':3 } });
-  map.addLayer({ id:'river-casing', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#0e1217', 'line-width':['interpolate',['linear'],['zoom'], 7, 4.5, 13, 9], 'line-opacity':0.7 } });
-  map.addLayer({ id:'river-line', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 2.5, 13, 6] } });
-  map.addLayer({ id:'river-sel', type:'line', source:'rivers', filter:['==',['get','id'],''], layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#e8a33d', 'line-width':['interpolate',['linear'],['zoom'], 7, 4, 13, 9], 'line-opacity':0.9 } }, 'river-line');
-  map.addLayer({ id:'flow-arrows', type:'symbol', source:'flow', minzoom:9.5, layout:{ 'symbol-placement':'line', 'symbol-spacing':['interpolate',['linear'],['zoom'], 10, 70, 14, 110], 'icon-image':'flow-arrow', 'icon-size':['interpolate',['linear'],['zoom'], 10, .75, 14, 1.1], 'icon-allow-overlap':true, 'icon-ignore-placement':true, 'icon-rotation-alignment':'map', 'icon-pitch-alignment':'map' } });
-  map.addLayer({ id:'aires', type:'circle', source:'aires', minzoom:9, paint:{ 'circle-radius':['interpolate',['linear'],['zoom'], 9, 3.5, 14, 7], 'circle-color':['match',['get','type'],'E','#4cc38a','D','#e8a33d','#ffffff'], 'circle-stroke-color':'#0e1217', 'circle-stroke-width':2 } });
+  map.addLayer({ id:'river-glow', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 6, 13, 12], 'line-opacity':0.18, 'line-blur':3 } });
+  map.addLayer({ id:'river-casing', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#0e1217', 'line-width':['interpolate',['linear'],['zoom'], 7, 2.8, 13, 5.5], 'line-opacity':0.55 } });
+  map.addLayer({ id:'river-line', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 1.5, 13, 3.5] } });
+  map.addLayer({ id:'river-sel', type:'line', source:'rivers', filter:['==',['get','id'],''], layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#e8a33d', 'line-width':['interpolate',['linear'],['zoom'], 7, 3, 13, 6.5], 'line-opacity':0.85 } }, 'river-line');
+  map.addLayer({ id:'flow-arrows', type:'symbol', source:'flow', minzoom:9.5, layout:{ 'symbol-placement':'line', 'symbol-spacing':['interpolate',['linear'],['zoom'], 10, 70, 14, 110], 'icon-image':'flow-arrow', 'icon-size':['interpolate',['linear'],['zoom'], 10, .6, 14, .85], 'icon-allow-overlap':true, 'icon-ignore-placement':true, 'icon-rotation-alignment':'map', 'icon-pitch-alignment':'map' } });
+  map.addLayer({ id:'aires', type:'circle', source:'aires', minzoom:9, paint:{ 'circle-radius':['interpolate',['linear'],['zoom'], 9, 2.5, 14, 5], 'circle-color':['match',['get','type'],'E','#4cc38a','D','#e8a33d','#ffffff'], 'circle-stroke-color':'#0e1217', 'circle-stroke-width':1.2 } });
   for (const l of ['river-line','river-glow','aires']) {
     map.on('click', l, e => { const id = e.features[0].properties.id; if (id) openFiche(id); });
     map.on('mouseenter', l, () => map.getCanvas().style.cursor = 'pointer');
@@ -374,7 +393,10 @@ document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () =
   if (f === 'pres' && filters.has('pres') && !me) locate(render);
   store.set('filters', [...filters].filter(x => x !== 'pres')); render();
 }));
-$('#panel-toggle').onclick = () => document.body.classList.toggle('panel-small');
+const mobile = () => matchMedia('(max-width:760px)').matches;
+$('#panel-toggle').onclick = () => document.body.classList.toggle(mobile() ? 'panel-small' : 'panel-hidden');
+if (!mobile() && store.get('panelHidden', false)) document.body.classList.add('panel-hidden');
+new MutationObserver(() => store.set('panelHidden', document.body.classList.contains('panel-hidden'))).observe(document.body, { attributes:true, attributeFilter:['class'] });
 
 // ---------- Fiche ----------
 function bearingOf(a, b){ // cap géographique de a vers b ([lat,lon])
