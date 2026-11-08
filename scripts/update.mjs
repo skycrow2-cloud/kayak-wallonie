@@ -61,6 +61,88 @@ function lineLengthKm(lines) {
   return Math.round(km * 10) / 10;
 }
 
+// Remet les morceaux de tracé (désordonnés, dupliqués, parfois disjoints) en une seule ligne continue.
+function buildTrace(lines) {
+  const key = p => p[0] + ',' + p[1];
+  const pts = new Map(), adj = new Map();
+  const link = (a, b, w) => {
+    const ka = key(a), kb = key(b); if (ka === kb) return;
+    pts.set(ka, a); pts.set(kb, b);
+    if (!adj.has(ka)) adj.set(ka, new Map()); if (!adj.has(kb)) adj.set(kb, new Map());
+    adj.get(ka).set(kb, w); adj.get(kb).set(ka, w);
+  };
+  for (const l of lines) for (let i = 1; i < l.length; i++) link(l[i - 1], l[i], haversine(l[i - 1], l[i]));
+  if (pts.size < 2) return null;
+  // composantes connexes, puis on les relie par leurs points les plus proches
+  const comps = []; const seen = new Set();
+  for (const k of adj.keys()) {
+    if (seen.has(k)) continue;
+    const c = [], st = [k]; seen.add(k);
+    while (st.length) { const x = st.pop(); c.push(x); for (const y of adj.get(x).keys()) if (!seen.has(y)) { seen.add(y); st.push(y); } }
+    comps.push(c);
+  }
+  while (comps.length > 1) {
+    const a = comps[0]; let best = null;
+    for (let j = 1; j < comps.length; j++) for (const x of a) for (const y of comps[j]) {
+      const d = haversine(pts.get(x), pts.get(y)); if (!best || d < best.d) best = { d, x, y, j };
+    }
+    link(pts.get(best.x), pts.get(best.y), best.d);
+    comps[0] = a.concat(comps[best.j]); comps.splice(best.j, 1);
+  }
+  const dijkstra = src => {
+    const dist = new Map([[src, 0]]), prev = new Map(), done = new Set();
+    while (true) {
+      let u = null, du = Infinity;
+      for (const [k, d] of dist) if (!done.has(k) && d < du) { u = k; du = d; }
+      if (u === null) break; done.add(u);
+      for (const [v, w] of adj.get(u)) if (du + w < (dist.get(v) ?? Infinity)) { dist.set(v, du + w); prev.set(v, u); }
+    }
+    let far = src; for (const [k, d] of dist) if (d > dist.get(far)) far = k;
+    return { far, prev, dist };
+  };
+  const A = dijkstra(adj.keys().next().value).far;
+  const { far: B, prev, dist } = dijkstra(A);
+  const path = [B]; while (path.at(-1) !== A) path.push(prev.get(path.at(-1)));
+  return { trace: path.reverse().map(k => pts.get(k)), km: Math.round(dist.get(B) * 10) / 10 };
+}
+
+// Oriente la trace de l'amont vers l'aval : altitude des extrémités (Open-Meteo), sinon position des aires.
+async function orientTraces(geo, aires) {
+  // 5 points échantillonnés dans le premier et le dernier quart de chaque trace : moins sensible au bruit du relief
+  const out = {}, samples = [];
+  for (const [id, lines] of Object.entries(geo)) {
+    const t = buildTrace(lines); if (!t) continue;
+    out[id] = t; const n = t.trace.length;
+    for (let k = 0; k < 5; k++) {
+      samples.push([id, 'A', t.trace[Math.floor(k / 5 * (n - 1) / 4)]]);
+      samples.push([id, 'B', t.trace[n - 1 - Math.floor(k / 5 * (n - 1) / 4)]]);
+    }
+  }
+  const elev = {};
+  try {
+    for (let i = 0; i < samples.length; i += 100) {
+      const chunk = samples.slice(i, i + 100);
+      const j = await getJSON(`${URL_METEO.replace('forecast', 'elevation')}?latitude=${chunk.map(e => e[2][0]).join(',')}&longitude=${chunk.map(e => e[2][1]).join(',')}`);
+      chunk.forEach((e, n) => { const o = (elev[e[0]] ||= { A: [], B: [] }); if (j.elevation[n] != null) o[e[1]].push(j.elevation[n]); });
+    }
+  } catch (e) { console.warn('altitudes:', e.message); }
+  const med = a => { if (!a?.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+  for (const [id, t] of Object.entries(out)) {
+    const zA = med(elev[id]?.A), zB = med(elev[id]?.B);
+    let reverse = null;
+    if (zA != null && zB != null && Math.abs(zA - zB) >= 3) reverse = zA < zB;
+    if (reverse === null) { // repli : les embarquements (E) sont plutôt en amont, les débarquements (D) en aval
+      const near = p => haversine(p, t.trace[0]) < haversine(p, t.trace.at(-1)) ? 1 : -1;
+      let score = 0;
+      for (const a of aires.filter(a => a.tro === id)) score += a.type === 'E' ? near([a.lat, a.lon]) : a.type === 'D' ? -near([a.lat, a.lon]) : 0;
+      reverse = score < 0;
+    }
+    if (reverse) t.trace.reverse();
+    t.altitudes = zA != null ? (reverse ? [zB, zA] : [zA, zB]) : null;
+  }
+  return out;
+}
+
 async function fetchStatic() {
   const q = (id, extra) => getJSON(`${URL_GEO}${id}/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&f=geojson${extra}`);
   const [tr, ai] = await Promise.all([
@@ -82,7 +164,8 @@ async function fetchStatic() {
       info: (f.properties.divers || '').replace(/GPS\s*:.*$/m, '').trim(),
       lat: r4(f.geometry.coordinates[1]), lon: r4(f.geometry.coordinates[0]),
     }));
-  return { geo, aires, fetched: new Date().toISOString() };
+  const traces = await orientTraces(geo, aires);
+  return { v: 2, geo, aires, traces, fetched: new Date().toISOString() };
 }
 
 // ---------- Hydrométrie (KiWIS) ----------
@@ -169,7 +252,7 @@ async function main() {
 
   let stat = await readJSON(STATIC_CACHE, null);
   const staleDays = stat ? (Date.now() - Date.parse(stat.fetched)) / 864e5 : Infinity;
-  if (staleDays > 7) {
+  if (staleDays > 7 || stat?.v !== 2) {
     try { stat = await fetchStatic(); await mkdir('state', { recursive: true }); await writeFile(STATIC_CACHE, JSON.stringify(stat)); }
     catch (e) { errors.push('géométries: ' + e.message); stat ||= { geo: {}, aires: [] }; }
   }
@@ -215,7 +298,9 @@ async function main() {
       description: (t.despar || '').trim(),
       note: (t.noteco || '').trim(),
       difficulte: difficulty(t.despar),
-      longueurKm: lines.length ? lineLengthKm(lines) : null,
+      longueurKm: stat.traces?.[t.nomtro]?.km ?? (lines.length ? lineLengthKm(lines) : null),
+      trace: stat.traces?.[t.nomtro]?.trace || null,
+      altitudes: stat.traces?.[t.nomtro]?.altitudes || null,
       lignes: lines,
       aires: stat.aires.filter(a => a.tro === t.nomtro),
     };
@@ -246,4 +331,4 @@ async function main() {
 }
 
 if (!globalThis.__noMain) main().catch(e => { console.error(e); process.exit(1); });
-export { main, outlook, lineLengthKm, seasonOK, difficulty };
+export { main, outlook, lineLengthKm, seasonOK, difficulty, buildTrace };

@@ -22,7 +22,7 @@ const troncons = { troncons: [
 ]};
 const line = (a, b) => ({ type: 'Feature', properties: { nomtro: a, pubint: 'O' }, geometry: { type: 'MultiLineString', coordinates: [b, [...b].reverse()] } });
 const geoTr = { features: [
-  line('SEMOIS2-3', [[5.3222, 49.7199], [5.30, 49.71], [5.2656, 49.706]]),
+  { type: 'Feature', properties: { nomtro: 'SEMOIS2-3' }, geometry: { type: 'MultiLineString', coordinates: [[[5.2656, 49.706], [5.28, 49.708]], [[5.3222, 49.7199], [5.31, 49.712]], [[5.30, 49.71], [5.31, 49.712]], [[5.2801, 49.7081], [5.30, 49.71]], [[5.30, 49.71], [5.305, 49.715], [5.30, 49.71]]] } },
   line('AMBLEVE1', [[5.9318, 50.3912], [5.8768, 50.3946], [5.8226, 50.3977]]),
   line('SURE', [[5.7293, 49.8308], [5.7826, 49.8757]]),
 ]};
@@ -48,6 +48,7 @@ globalThis.__mockFetch = async (url, opts = {}) => {
   if (url.includes('MapServer/3/')) return ok(geoAi);
   if (url.includes('getTimeseriesList')) return ok(kiwisList);
   if (url.includes('getTimeseriesValues')) return ok(kiwisVals);
+  if (url.includes('/elevation')) { const lo = new URL(url).searchParams.get('longitude').split(',').map(Number); return ok({ elevation: lo.map(x => Math.round(x * 100)) }); }
   if (url.includes('open-meteo')) return ok(meteo);
   if (url.includes('ntfy')) return ok({});
   return { ok: false, status: 404 };
@@ -64,6 +65,7 @@ const mod = await import('../scripts/update.mjs?2');
 await mod.main();
 const d = JSON.parse(readFileSync('test/out/data.json', 'utf8'));
 console.log('ntfy calls:', calls.filter(c => c.startsWith('POST')));
+for (const t of d.troncons) console.log('trace', t.id, JSON.stringify(t.trace), t.altitudes);
 for (const t of d.troncons) console.log(t.id, t.ouvert, t.debit, t.min, t.longueurKm, 'km', t.difficulte, t.prevision.niveau, '-', t.prevision.texte, '| aires', t.aires.length, '| serie', t.serie.length, '| meteo', t.meteo.length);
 // fixture pour tester le front
 writeFileSync('site/data.json', JSON.stringify(d));

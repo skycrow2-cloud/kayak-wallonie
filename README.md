@@ -1,6 +1,8 @@
 # Kayak Wallonie
 
-Carte mobile des parcours de kayak en Wallonie : état du jour, débit en direct, prévision indicative sur 3 jours, aires d'embarquement et alertes push.
+Carte 3D des parcours de kayak en Wallonie : état du jour, débit en direct, sens du courant, prévision indicative sur 3 jours, aires d'embarquement et alertes push.
+
+Interface reprise de [GPX 3D](https://github.com/skycrow2-cloud/gpx-3d-viewer) : MapLibre GL, relief ×1,6, photo aérienne Esri / OpenTopoMap / OpenStreetMap.
 
 Le site est hébergé gratuitement par GitHub. Toutes les heures, une tâche automatique récupère les données et republie le site.
 
@@ -12,6 +14,7 @@ Le site est hébergé gratuitement par GitHub. Toutes les heures, une tâche aut
 | Tracés et aires d'embarquement | Géoservices SPW – `APP_KAYAK/PKAYAK/MapServer` (rafraîchi chaque semaine) |
 | Débit horaire sur 7 jours | hydrometrie.wallonie.be (KiWIS, série `10-Debit.1h.Moyen`) |
 | Pluie et températures | Open-Meteo |
+| Sens d'écoulement | altitude des extrémités de chaque tracé (Open-Meteo Elevation), sinon position des aires d'embarquement / débarquement |
 
 La « prévision » est une estimation maison (débit, tendance, pluie prévue). Seul l'affichage officiel d'Infokayak fait foi.
 

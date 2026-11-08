@@ -5,106 +5,155 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kayak Wallonie</title>
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta name="theme-color" content="#17302B">
+<meta name="theme-color" content="#0e1217">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.css">
 <style>
+/* Charte reprise de GPX 3D : interface sombre en verre, accent orange « balise de sentier », eau en turquoise */
 :root{
-  --ink:#17302B; --mist:#EEF2EF; --paper:#FBFCFB; --river:#2F6F73; --line:#C9D3CF; --soft:#5B6E69;
-  --open:#1F8A5B; --closed:#8A8F93; --risk:#C98A12; --maybe:#3C7FB5; --high:#7A4FA0;
-  --display:'Barlow Condensed', 'Arial Narrow', sans-serif;
-  --body:'Atkinson Hyperlegible', system-ui, sans-serif;
+  --ctl:40px;
+  --bg:#0e1217; --panel-solid:rgba(20,25,31,.82); --panel-border:#2a323c; --field-bg:#1b222a;
+  --text:#eeeae1; --text-muted:#8b93a1; --muted-2:#5d6672;
+  --accent:#e8a33d; --accent-soft:rgba(232,163,61,.16);
+  --accent-2:#49b6c4; --accent-2-soft:rgba(73,182,196,.16);
+  --warn:#f2c94c; --danger:#d9695f; --ok:#4cc38a;
+  --glass:rgba(30,37,48,.48); --glass-hover:rgba(30,37,48,.66); --glass-strong:rgba(27,34,44,.8);
+  --glass-border:rgba(232,163,61,.35); --glass-shadow:0 4px 14px rgba(0,0,0,.45);
+  --radius:8px; --chart-bg:#1b222a; --chart-grid:#33404b;
+  --font-ui:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --panel-w:380px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--mist);color:var(--ink);font:16px/1.45 var(--body)}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{font-family:var(--font-ui);color:var(--text);background:var(--bg);overflow:hidden}
 button{font:inherit;color:inherit}
-:focus-visible{outline:3px solid var(--maybe);outline-offset:2px}
-.app{display:grid;height:100dvh;grid-template-rows:auto 42dvh 1fr}
-header{padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--ink);color:var(--paper);display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-header h1{font:700 26px/1 var(--display);margin:0;letter-spacing:.01em}
-header .maj{font-size:13px;opacity:.75;margin-left:auto}
-#map{background:#dfe7e3}
-.panel{overflow:auto;background:var(--paper);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.filters{position:sticky;top:0;z-index:2;background:var(--paper);display:flex;gap:8px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--line)}
-.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap;cursor:pointer}
-.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-.summary{padding:12px 16px 4px;font:600 20px/1.2 var(--display);margin:0}
-.notice{margin:8px 16px;padding:10px 12px;background:#fff6e0;border-left:4px solid var(--risk);font-size:14px}
-ul.list{list-style:none;margin:0;padding:0}
-.row{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
-.row:hover{background:var(--mist)}
-.row .name{font:600 21px/1.1 var(--display)}
-.row .sub{font-size:14px;color:var(--soft);grid-column:1/-1}
-.row .gauge{grid-column:1/-1;margin-top:6px}
-.badge{display:inline-flex;align-items:center;gap:6px;font:600 15px/1 var(--display);padding:5px 9px;border-radius:4px;color:#fff;letter-spacing:.02em}
-.b-ouvert{background:var(--open)} .b-ferme{background:var(--closed)} .b-risque{background:var(--risk)} .b-possible{background:var(--maybe)} .b-saison{background:#B5BBB8;color:var(--ink)}
-.star{background:none;border:0;font-size:20px;cursor:pointer;padding:2px 4px;color:var(--soft)}
-.star[aria-pressed=true]{color:var(--risk)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#map{position:fixed;inset:0}
 
-/* Jauge de débit : la fenêtre navigable min–max est la bande d'eau */
-.gauge{position:relative;height:30px}
-.gauge .track{position:absolute;left:0;right:0;top:10px;height:10px;border-radius:5px;background:repeating-linear-gradient(90deg,#D9DFDC 0 6px,#E6EBE8 6px 12px)}
-.gauge .band{position:absolute;top:10px;height:10px;background:linear-gradient(180deg,#4F9A9E,var(--river));border-radius:2px}
-.gauge .mark{position:absolute;top:2px;width:4px;height:26px;margin-left:-2px;background:var(--ink);border-radius:2px;box-shadow:0 0 0 2px var(--paper)}
-.gauge .lab{position:absolute;top:21px;font-size:11px;color:var(--soft);transform:translateX(-50%);white-space:nowrap}
-.gauge.big{height:48px}
-.gauge.big .track,.gauge.big .band{top:14px;height:16px}
-.gauge.big .mark{top:4px;height:36px;width:5px}
-.gauge.big .lab{top:33px;font-size:12px}
+/* ---------- panneau ---------- */
+#panel{position:fixed;z-index:3;top:0;left:0;bottom:0;width:var(--panel-w);overflow-y:auto;overscroll-behavior:contain;
+  background:var(--panel-solid);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-right:1px solid var(--panel-border);padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:30px;height:30px;border-radius:7px}
+.brand h1{font-size:17px;font-weight:700;margin:0;letter-spacing:.01em}
+.brand .maj{margin-left:auto;font-size:11.5px;color:var(--text-muted);font-variant-numeric:tabular-nums;text-align:right}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:999px;border:1px solid var(--panel-border);background:var(--field-bg);cursor:pointer}
+.chip:hover{border-color:#3a4450}
+.chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.summary{font-size:15px;font-weight:600;margin:2px 0 0}
+.summary b{color:var(--accent);font-variant-numeric:tabular-nums}
+.notice{padding:8px 10px;border-radius:var(--radius);border:1px solid rgba(242,201,76,.4);background:rgba(242,201,76,.1);font-size:12.5px;line-height:1.45}
+ul.list{list-style:none;margin:0 -8px;padding:0}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 8px;border-radius:var(--radius);cursor:pointer;align-items:center}
+.row:hover,.row.hl{background:rgba(255,255,255,.04)}
+.row + .row{border-top:1px solid var(--panel-border)}
+.row .name{font-size:15px;font-weight:700}
+.row .sub{grid-column:1/-1;font-size:12.5px;color:var(--text-muted);line-height:1.4}
+.row .gauge{grid-column:1/-1;margin-top:4px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.badge::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.s-ouvert{color:var(--ok)} .s-ferme{color:var(--text-muted)} .s-risque{color:var(--warn)} .s-possible{color:var(--accent-2)} .s-saison{color:var(--muted-2)}
 
-/* Fiche */
-.sheet{position:fixed;inset:0;z-index:1000;background:var(--paper);overflow:auto;transform:translateY(100%);transition:transform .25s ease;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
-.sheet.on{transform:none}
-.sheet .top{position:sticky;top:0;background:var(--ink);color:var(--paper);padding:calc(10px + env(safe-area-inset-top)) 16px 14px;z-index:2}
-.sheet .back{background:none;border:0;color:var(--paper);font-size:15px;padding:4px 0;cursor:pointer;opacity:.85}
-.sheet h2{font:700 32px/1 var(--display);margin:6px 0 4px}
-.sheet .where{font-size:15px;opacity:.85;margin:0}
-.sheet section{padding:16px;border-bottom:1px solid var(--line)}
-.sheet h3{font:600 20px/1.1 var(--display);margin:0 0 10px}
-.big-q{font:700 44px/1 var(--display)}
-.big-q small{font-size:18px;font-weight:500;color:var(--soft)}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
-.facts div{font-size:14px;color:var(--soft)} .facts b{display:block;font:600 20px/1.1 var(--display);color:var(--ink)}
-.days{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
-.day{padding:8px 4px;border-radius:6px;background:var(--mist)}
-.day .d{font-size:13px;color:var(--soft)} .day .i{font-size:24px;line-height:1.3} .day .r{font:600 18px/1 var(--display)}
-.outlook{margin-top:12px;padding:12px;border-radius:6px;border-left:5px solid var(--maybe);background:#EAF1F7}
-.outlook.o-ouvert{border-color:var(--open);background:#E5F3EC}.outlook.o-ferme{border-color:var(--closed);background:#EFF0F0}.outlook.o-risque{border-color:var(--risk);background:#FBF1DC}
-.aire{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
-.aire:first-of-type{border-top:0}
-.aire .t{flex:none;width:34px;text-align:center;font:700 14px/26px var(--display);border-radius:4px;background:var(--mist)}
-.aire .n{flex:1;font-size:15px} .aire .n small{display:block;color:var(--soft);font-size:13px;white-space:pre-line}
-.aire a{flex:none;font-size:14px;color:var(--river);font-weight:700}
-.desc{white-space:pre-line;font-size:15px;max-width:68ch}
-.desc.short{max-height:9.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
-.link{color:var(--river);font-weight:700;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
-svg.spark{width:100%;height:110px;display:block}
-.alert-box{font-size:15px}
-.btn{display:inline-block;background:var(--river);color:#fff;border:0;border-radius:6px;padding:10px 14px;font-weight:700;text-decoration:none;cursor:pointer}
-.leaflet-container{font:inherit}
-.lbl{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font:600 13px var(--display);white-space:nowrap;box-shadow:none}
-.lbl:before{display:none}
+/* jauge : bande turquoise = débits autorisés, curseur orange = débit actuel */
+.gauge{position:relative;height:26px}
+.gauge .track{position:absolute;left:0;right:0;top:8px;height:8px;border-radius:4px;background:var(--chart-bg);border:1px solid var(--chart-grid)}
+.gauge .band{position:absolute;top:8px;height:8px;background:var(--accent-2);opacity:.75;border-radius:2px}
+.gauge .mark{position:absolute;top:2px;width:4px;height:20px;margin-left:-2px;background:var(--accent);border-radius:2px;box-shadow:0 0 0 2px rgba(14,18,23,.9)}
+.gauge .lab{position:absolute;top:17px;font-size:10.5px;color:var(--text-muted);transform:translateX(-50%);white-space:nowrap;font-variant-numeric:tabular-nums}
+.gauge.big{height:36px}
+.gauge.big .track,.gauge.big .band{top:10px;height:12px}
+.gauge.big .mark{top:3px;height:26px;width:5px}
+.gauge.big .lab{top:25px;font-size:11px}
 
-@media (min-width:900px){
-  .app{grid-template-columns:420px 1fr;grid-template-rows:auto 1fr}
-  header{grid-column:1/-1}
-  #map{grid-column:2;grid-row:2}
-  .panel{grid-column:1;grid-row:2;border-top:0;border-right:1px solid var(--line)}
-  .sheet{inset:auto;top:var(--hh,48px);left:0;bottom:0;width:420px;transform:translateX(-100%);box-shadow:4px 0 16px rgba(23,48,43,.15)}
+/* fiche */
+.back{align-self:flex-start;background:none;border:0;color:var(--accent);font-size:13px;font-weight:600;padding:2px 0;cursor:pointer}
+.fiche h2{font-size:22px;margin:4px 0 2px}
+.fiche .where{font-size:13px;color:var(--text-muted);margin:0}
+.card{border:1px solid var(--panel-border);background:rgba(27,34,42,.55);border-radius:10px;padding:12px}
+.card h3{font-size:12.5px;font-weight:600;color:var(--text-muted);margin:0 0 8px}
+.big-q{font-size:30px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;margin:6px 0 0}
+.big-q small{font-size:14px;color:var(--text-muted);font-weight:500}
+.meta{font-size:11.5px;color:var(--text-muted);margin:2px 0 6px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.stat{display:flex;flex-direction:column;line-height:1.25}
+.stat .l{font-size:10.5px;color:var(--text-muted)}
+.stat .v{font-size:15px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.days{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.day{padding:6px 2px;border-radius:var(--radius);background:var(--field-bg)}
+.day .d{font-size:11px;color:var(--text-muted)} .day .i{font-size:20px;line-height:1.4} .day .r{font-size:13px;font-weight:600;color:var(--accent-2);font-variant-numeric:tabular-nums}
+.outlook{margin-top:10px;padding:9px 10px;border-radius:var(--radius);border-left:3px solid var(--accent-2);background:var(--accent-2-soft);font-size:13px}
+.outlook.o-ouvert{border-color:var(--ok);background:rgba(76,195,138,.12)} .outlook.o-ferme{border-color:var(--text-muted);background:rgba(139,147,161,.1)} .outlook.o-risque{border-color:var(--warn);background:rgba(242,201,76,.1)}
+.outlook small{display:block;color:var(--text-muted);font-size:11.5px;margin-top:3px}
+.flow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-muted);margin-top:10px}
+.flow svg{flex:none}
+.aire{display:flex;gap:9px;align-items:flex-start;padding:8px 0}
+.aire + .aire{border-top:1px solid var(--panel-border)}
+.aire .t{flex:none;min-width:30px;text-align:center;font-size:11px;font-weight:700;line-height:22px;border-radius:999px;border:1px solid var(--panel-border);color:var(--accent-2)}
+.aire .n{flex:1;font-size:13px;cursor:pointer} .aire .n small{display:block;color:var(--text-muted);font-size:11.5px;white-space:pre-line}
+.aire a{flex:none;font-size:12.5px;color:var(--accent);font-weight:600;text-decoration:none}
+.desc{white-space:pre-line;font-size:13px;line-height:1.55;color:#d5d1c8}
+.desc.short{max-height:8.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 55%,transparent)}
+.link{color:var(--accent);font-weight:600;background:none;border:0;padding:0;cursor:pointer;font-size:13px;text-decoration:none}
+svg.spark{width:100%;height:96px;display:block;background:var(--chart-bg);border-radius:6px}
+.btn{display:inline-block;font-size:13.5px;font-weight:600;border-radius:var(--radius);padding:8px 12px;text-decoration:none;cursor:pointer;background:var(--accent);color:#231705;border:1px solid var(--accent)}
+.star{background:none;border:1px solid var(--panel-border);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-muted)}
+.star[aria-pressed=true]{color:var(--accent);border-color:var(--accent)}
+
+/* ---------- commandes de carte en verre ---------- */
+.ctl-stack{position:fixed;z-index:2;top:calc(10px + env(safe-area-inset-top));right:10px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.pill,.zoom-bar{background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+.zoom-bar{display:flex;flex-direction:column;width:var(--ctl);border-radius:calc(var(--ctl)/2);overflow:hidden}
+.zoom-btn{width:100%;height:calc(var(--ctl) - 2px);border:0;background:transparent;color:var(--accent);font-size:21px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.zoom-btn + .zoom-btn{border-top:1px solid rgba(255,255,255,.12)}
+.zoom-btn:hover{background:rgba(232,163,61,.18)}
+.pill{width:var(--ctl);height:var(--ctl);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);cursor:pointer;padding:0;font-size:12px;font-weight:700}
+.pill:hover{background:var(--glass-hover)}
+#compass svg{transition:transform .1s linear}
+.menu{position:relative}
+.menu-pop{position:absolute;right:calc(var(--ctl) + 8px);top:0;min-width:170px;padding:6px;border-radius:8px;background:var(--glass-strong);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--glass-border);box-shadow:0 6px 20px rgba(0,0,0,.5);display:none}
+.menu-pop.open{display:block}
+.menu-pop button{display:flex;width:100%;align-items:center;gap:8px;padding:7px 8px;border:0;background:none;border-radius:5px;font-size:12.5px;cursor:pointer;text-align:left}
+.menu-pop button:hover{background:rgba(232,163,61,.15)}
+.menu-pop button[aria-checked=true]{color:var(--accent)}
+.menu-pop hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:4px 0}
+#pitch-control{position:fixed;z-index:2;right:10px;bottom:40px;width:var(--ctl);height:130px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+#pitch-slider{width:110px;height:22px;transform:rotate(-90deg);accent-color:var(--accent);cursor:pointer}
+.maplibregl-ctrl-attrib{font-size:10px;background:transparent!important}
+.maplibregl-ctrl-attrib a{color:var(--text-muted);text-shadow:0 1px 3px rgba(0,0,0,.65)}
+.maplibregl-ctrl-attrib-button{background-color:rgba(30,37,48,.6)!important;filter:invert(1)}
+.maplibregl-ctrl-bottom-right{right:58px}
+.lbl{padding:2px 8px;border-radius:10px;background:var(--glass-strong);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid var(--glass-border);font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;box-shadow:var(--glass-shadow)}
+.lbl i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.maplibregl-popup-content{background:var(--glass-strong);color:var(--text);border:1px solid var(--glass-border);border-radius:10px;padding:6px 10px;font-size:12.5px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.maplibregl-popup-tip{display:none}
+
+#panel-toggle{display:none}
+@media (max-width:760px){
+  :root{--panel-w:100vw}
+  #panel{top:auto;height:48dvh;width:100%;border-right:0;border-top:1px solid var(--panel-border);border-radius:14px 14px 0 0;transition:height .2s ease}
+  body.panel-small #panel{height:96px;overflow:hidden}
+  #panel-toggle{display:flex;position:absolute;left:50%;transform:translateX(-50%);top:4px;width:56px;height:18px;border:0;background:none;padding:0;justify-content:center;cursor:pointer}
+  #panel-toggle::before{content:'';width:40px;height:5px;border-radius:3px;background:var(--muted-2)}
+  #panel{padding-top:22px}
+  #pitch-control{bottom:calc(48dvh + 12px)}
+  body.panel-small #pitch-control{bottom:108px}
+  .maplibregl-ctrl-bottom-right{display:none}
 }
-@media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+@media (prefers-reduced-motion:reduce){#panel{transition:none}}
 </style>
 </head>
 <body>
-<div class="app">
-  <header><h1>Kayak Wallonie</h1><span class="maj" id="maj">Chargement…</span></header>
-  <div id="map" role="region" aria-label="Carte des parcours"></div>
-  <div class="panel">
+<div id="map" role="region" aria-label="Carte des parcours"></div>
+
+<aside id="panel" aria-label="Parcours">
+  <button id="panel-toggle" aria-label="Agrandir ou réduire le panneau"></button>
+  <div class="brand"><img src="icon.svg" alt=""><h1>Kayak Wallonie</h1><span class="maj" id="maj">Chargement…</span></div>
+  <div id="view-list" style="display:flex;flex-direction:column;gap:12px">
     <div class="filters" role="toolbar" aria-label="Filtres">
       <button class="chip" data-f="ouvert" aria-pressed="false">Ouverts</button>
       <button class="chip" data-f="fav" aria-pressed="false">Mes rivières</button>
@@ -114,22 +163,40 @@ svg.spark{width:100%;height:110px;display:block}
     <div id="notices"></div>
     <ul class="list" id="list"></ul>
   </div>
-</div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="s-title" hidden></div>
+  <div id="view-fiche" class="fiche" hidden></div>
+</aside>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<div class="ctl-stack">
+  <div class="zoom-bar"><button class="zoom-btn" id="zin" aria-label="Zoomer">+</button><button class="zoom-btn" id="zout" aria-label="Dézoomer">−</button></div>
+  <button class="pill" id="compass" aria-label="Remettre le nord en haut et la carte à plat"><svg width="22" height="22" viewBox="0 0 29 29"><path fill="#e5383b" d="m10.5 14 4-8 4 8h-8z"/><path fill="#d9dde3" d="m10.5 16 4 8 4-8h-8z"/></svg></button>
+  <div class="menu">
+    <button class="pill" id="basemap-btn" aria-haspopup="true" aria-expanded="false" aria-label="Fond de carte"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
+    <div class="menu-pop" id="basemap-pop" role="menu">
+      <button role="menuitemradio" data-bm="aerial">Photo aérienne</button>
+      <button role="menuitemradio" data-bm="opentopo">Plan randonnée</button>
+      <button role="menuitemradio" data-bm="osm">OpenStreetMap</button>
+      <hr>
+      <button role="menuitemcheckbox" id="terrain-btn">Relief 3D</button>
+    </div>
+  </div>
+  <button class="pill" id="locate" aria-label="Me localiser"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
+</div>
+<div id="pitch-control" class="pill" style="border-radius:999px"><input id="pitch-slider" type="range" min="0" max="75" value="0" aria-label="Inclinaison de la vue"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.12.0/maplibre-gl.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store = { get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
-let DATA = null, me = null, favs = new Set(store.get('favs', [])), filters = new Set(store.get('filters', []));
-const COLORS = { ouvert:'#1F8A5B', ferme:'#8A8F93', risque:'#C98A12', possible:'#3C7FB5', saison:'#B5BBB8' };
+let DATA = null, me = null, current = null, favs = new Set(store.get('favs', [])), filters = new Set(store.get('filters', []));
+const COLORS = { ouvert:'#4cc38a', ferme:'#8b93a1', risque:'#f2c94c', possible:'#49b6c4', saison:'#5d6672' };
 const fmt = n => n == null ? '–' : new Intl.NumberFormat('fr-BE', { maximumFractionDigits: n < 10 ? 2 : n < 100 ? 1 : 0 }).format(n);
+const ll = p => [p[1], p[0]]; // [lat,lon] -> [lon,lat]
 
 function state(t){
   if (!t.saison) return { k:'saison', label:'Hors saison' };
   if (t.ouvert) return t.prevision?.niveau === 'risque' ? { k:'risque', label:'Ouvert, à surveiller' } : { k:'ouvert', label:'Ouvert' };
-  if (t.prevision?.niveau === 'possible') return { k:'possible', label:'Fermé, ouverture possible' };
+  if (t.prevision?.niveau === 'possible') return { k:'possible', label:'Ouverture possible' };
   return { k:'ferme', label:'Fermé' };
 }
 function reason(t){
@@ -139,62 +206,142 @@ function reason(t){
   if (t.debit != null && t.max && t.debit > t.max) return 'Trop d’eau';
   return t.justif || 'Circulation interdite aujourd’hui';
 }
-
-// Jauge sur échelle log : la bande = fenêtre autorisée
 function gauge(t, big){
   if (t.debit == null || !t.min) return '';
   const lo = Math.min(t.debit, t.min) / 2, hi = Math.max(t.debit, t.max || t.min * 4) * 1.3;
   const x = v => (Math.log(v) - Math.log(lo)) / (Math.log(hi) - Math.log(lo)) * 100;
   const a = x(t.min), b = t.max ? x(t.max) : 100, m = Math.max(1, Math.min(99, x(t.debit)));
   return `<div class="gauge${big ? ' big' : ''}" role="img" aria-label="Débit ${fmt(t.debit)} m³/s, plage autorisée ${fmt(t.min)} à ${fmt(t.max)} m³/s">
-    <div class="track"></div><div class="band" style="left:${a}%;width:${b - a}%"></div>
-    <div class="mark" style="left:${m}%"></div>
+    <div class="track"></div><div class="band" style="left:${a}%;width:${b - a}%"></div><div class="mark" style="left:${m}%"></div>
     <span class="lab" style="left:${a}%">min ${fmt(t.min)}</span>${t.max ? `<span class="lab" style="left:${Math.min(b, 92)}%">max ${fmt(t.max)}</span>` : ''}
   </div>`;
 }
-
 function spark(t){
-  const s = t.serie || []; if (s.length < 3) return '<p>Pas de mesures horaires disponibles.</p>';
-  const W = 600, H = 110, P = 6, vals = s.map(p => p[1]);
+  const s = t.serie || []; if (s.length < 3) return '<p class="meta">Pas de mesures horaires disponibles.</p>';
+  const W = 600, H = 96, P = 6, vals = s.map(p => p[1]);
   const lo = Math.min(...vals, t.min ?? Infinity) * .9, hi = Math.max(...vals, Math.min(t.max ?? 0, Math.max(...vals) * 2), t.min ?? 0) * 1.08;
   const X = i => P + i / (s.length - 1) * (W - 2 * P), Y = v => H - P - (v - lo) / (hi - lo || 1) * (H - 2 * P);
   const path = s.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
   const minY = t.min != null && t.min <= hi ? Y(t.min) : null, maxY = t.max != null && t.max <= hi ? Y(t.max) : null;
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Débit des 7 derniers jours">
-    ${minY != null ? `<rect x="0" y="${maxY ?? 0}" width="${W}" height="${minY - (maxY ?? 0)}" fill="#2F6F73" opacity=".10"/><line x1="0" x2="${W}" y1="${minY}" y2="${minY}" stroke="#2F6F73" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/>` : ''}
-    <path d="${path} L${X(s.length - 1)} ${H} L${X(0)} ${H}Z" fill="#2F6F73" opacity=".18"/>
-    <path d="${path}" fill="none" stroke="#17302B" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
-  </svg>
-  <p style="margin:6px 0 0;font-size:13px;color:var(--soft)">7 derniers jours. Zone teintée : plage autorisée (pointillé = minimum ${fmt(t.min)} m³/s).</p>`;
+  const grid = [1, 2, 3].map(k => `<line x1="0" x2="${W}" y1="${H * k / 4}" y2="${H * k / 4}" stroke="#33404b" vector-effect="non-scaling-stroke"/>`).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Débit des 7 derniers jours">${grid}
+    ${minY != null ? `<rect x="0" y="${maxY ?? 0}" width="${W}" height="${minY - (maxY ?? 0)}" fill="#49b6c4" opacity=".14"/><line x1="0" x2="${W}" y1="${minY}" y2="${minY}" stroke="#49b6c4" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/>` : ''}
+    <path d="${path} L${X(s.length - 1)} ${H} L${X(0)} ${H}Z" fill="#e8a33d" opacity=".16"/>
+    <path d="${path}" fill="none" stroke="#e8a33d" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+  <p class="meta" style="margin-top:6px">7 derniers jours. Bande turquoise : débits autorisés (pointillé = minimum).</p>`;
+}
+const WX = c => c == null ? '·' : c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌦️' : '⛈️';
+const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const dayName = d => d === todayISO() ? 'Auj.' : new Date(d + 'T12:00').toLocaleDateString('fr-BE', { weekday:'short' });
+function distKm(a, b){ const R = 6371, r = Math.PI/180, dl = (b[0]-a[0])*r, dn = (b[1]-a[1])*r; return 2*R*Math.asin(Math.sqrt(Math.sin(dl/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2)); }
+const start = t => t.trace?.[0] || (a => a ? [a.lat, a.lon] : t.lignes?.[0]?.[0])(t.aires.find(x => x.type === 'E' || x.type === 'ED'));
+const shortName = t => t.nom.replace(/^(La|Le|L')\s?[^,]*?(,\s*|\s(?=de |entre |en aval|du |à ))/i, '').replace(/^./, c => c.toUpperCase());
+
+// ---------- Carte (MapLibre, relief 3D comme GPX 3D) ----------
+const BASEMAPS = {
+  aerial: { tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], maxzoom:19, attribution:'Imagerie © Esri, Maxar, Earthstar Geographics' },
+  opentopo: { tiles:['https://a.tile.opentopomap.org/{z}/{x}/{y}.png','https://b.tile.opentopomap.org/{z}/{x}/{y}.png','https://c.tile.opentopomap.org/{z}/{x}/{y}.png'], maxzoom:17, attribution:'© OpenStreetMap, SRTM · Style © OpenTopoMap (CC-BY-SA)' },
+  osm: { tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], maxzoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' },
+};
+let basemap = store.get('basemap', 'aerial'); if (!BASEMAPS[basemap]) basemap = 'aerial';
+let terrainOn = store.get('terrain', true);
+const DEM = { type:'raster-dem', tiles:['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'], tileSize:256, encoding:'terrarium', maxzoom:13 };
+const sources = { terrainSource:{ ...DEM, attribution:'Relief © AWS Open Data / Mapzen' }, hillshadeSource:{ ...DEM } };
+for (const [k, b] of Object.entries(BASEMAPS)) sources[k] = { type:'raster', tileSize:256, ...b };
+const map = new maplibregl.Map({
+  container:'map',
+  style:{ version:8, sources,
+    layers:[
+      ...Object.keys(BASEMAPS).map(k => ({ id:k, type:'raster', source:k, layout:{ visibility: k === basemap ? 'visible' : 'none' } })),
+      { id:'hillshade', type:'hillshade', source:'hillshadeSource', paint:{ 'hillshade-exaggeration':0.45, 'hillshade-shadow-color':'#1a120a', 'hillshade-highlight-color':'#fff6e0', 'hillshade-accent-color':'#2a1c10' } },
+    ],
+    terrain: terrainOn ? { source:'terrainSource', exaggeration:1.6 } : undefined,
+    sky:{ 'sky-color':'#0b1a2a', 'horizon-color':'#3a4a5a', 'fog-color':'#0e1217', 'fog-ground-blend':0.5, 'sky-horizon-blend':0.5, 'horizon-fog-blend':0.6 },
+  },
+  center:[5.35, 50.05], zoom:7.6, maxPitch:80, attributionControl:{ compact:true },
+});
+map.getCanvas().addEventListener('contextmenu', e => e.preventDefault());
+const panelPad = () => matchMedia('(max-width:760px)').matches
+  ? { top:40, left:30, right:60, bottom: document.body.classList.contains('panel-small') ? 110 : innerHeight * .48 + 20 }
+  : { top:50, bottom:50, right:70, left: 380 + 40 };
+
+// commandes
+$('#zin').onclick = () => map.zoomIn(); $('#zout').onclick = () => map.zoomOut();
+$('#compass').onclick = () => map.easeTo({ bearing:0, pitch:0 });
+map.on('rotate', () => { $('#compass svg').style.transform = `rotate(${-map.getBearing()}deg)`; });
+map.on('pitch', () => { $('#pitch-slider').value = Math.round(map.getPitch()); });
+$('#pitch-slider').oninput = e => map.setPitch(+e.target.value);
+const pop = $('#basemap-pop');
+$('#basemap-btn').onclick = e => { e.stopPropagation(); const o = pop.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', o); };
+document.addEventListener('click', e => { if (!pop.contains(e.target)) pop.classList.remove('open'); });
+function syncMenu(){ pop.querySelectorAll('[data-bm]').forEach(b => b.setAttribute('aria-checked', b.dataset.bm === basemap)); $('#terrain-btn').setAttribute('aria-checked', terrainOn); $('#terrain-btn').textContent = (terrainOn ? '✓ ' : '') + 'Relief 3D'; }
+pop.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => { basemap = b.dataset.bm; store.set('basemap', basemap); for (const k in BASEMAPS) map.setLayoutProperty(k, 'visibility', k === basemap ? 'visible' : 'none'); syncMenu(); });
+$('#terrain-btn').onclick = () => { terrainOn = !terrainOn; store.set('terrain', terrainOn); map.setTerrain(terrainOn ? { source:'terrainSource', exaggeration:1.6 } : null); map.setLayoutProperty('hillshade', 'visibility', terrainOn ? 'visible' : 'none'); syncMenu(); };
+syncMenu();
+let meMarker = null;
+function locate(cb){
+  navigator.geolocation?.getCurrentPosition(p => {
+    me = [p.coords.latitude, p.coords.longitude];
+    const el = document.createElement('div'); el.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#49b6c4;border:3px solid #fff;box-shadow:0 0 0 4px rgba(73,182,196,.3)';
+    meMarker?.remove(); meMarker = new maplibregl.Marker({ element:el }).setLngLat(ll(me)).addTo(map);
+    cb?.();
+  }, () => { $('#notices').innerHTML = '<div class="notice">Position indisponible : autorisez la localisation dans votre navigateur.</div>'; filters.delete('pres'); render(); });
+}
+$('#locate').onclick = () => locate(() => map.flyTo({ center:ll(me), zoom:10, padding:panelPad() }));
+
+// flèche du sens d'écoulement (icône posée le long des lignes)
+function arrowImage(){
+  const s = 2, w = 22 * s, h = 22 * s, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); g.lineJoin = 'round'; g.lineCap = 'round';
+  const chev = () => { g.beginPath(); g.moveTo(7*s, 5*s); g.lineTo(15*s, 11*s); g.lineTo(7*s, 17*s); };
+  chev(); g.strokeStyle = 'rgba(14,18,23,.85)'; g.lineWidth = 6*s; g.stroke();
+  chev(); g.strokeStyle = '#ffffff'; g.lineWidth = 2.6*s; g.stroke();
+  return { width:w, height:h, data:g.getImageData(0, 0, w, h).data };
 }
 
-const WX = c => c == null ? '·' : c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '🌨️' : c <= 82 ? '🌦️' : '⛈️';
-const dayName = d => { const t = new Date().toISOString().slice(0, 10); return d === t ? 'Auj.' : new Date(d + 'T12:00').toLocaleDateString('fr-BE', { weekday:'short' }); };
-
-function distKm(a, b){ const R = 6371, r = Math.PI/180, dl = (b[0]-a[0])*r, dn = (b[1]-a[1])*r; return 2*R*Math.asin(Math.sqrt(Math.sin(dl/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2)); }
-const start = t => { const a = t.aires.find(x => x.type === 'E' || x.type === 'ED'); return a ? [a.lat, a.lon] : t.lignes?.[0]?.[0]; };
-
-// ---------- Carte ----------
-const map = L.map('map', { zoomControl:false, attributionControl:true }).setView([50.05, 5.35], 8);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
-L.control.zoom({ position:'topright' }).addTo(map);
-const layers = {};
-
-function drawMap(){
+function addData(){
+  const lines = [], arrows = [], aires = [];
   for (const t of DATA.troncons){
-    const st = state(t), col = COLORS[st.k];
-    const grp = L.featureGroup().addTo(map);
-    if (t.lignes?.length){
-      L.polyline(t.lignes, { color:'#fff', weight:9, opacity:.9 }).addTo(grp);
-      L.polyline(t.lignes, { color:col, weight:5, opacity:1 }).addTo(grp);
+    const st = state(t), props = { id:t.id, color:COLORS[st.k] };
+    if (t.trace?.length > 1){
+      lines.push({ type:'Feature', properties:props, geometry:{ type:'LineString', coordinates:t.trace.map(ll) } });
+      arrows.push({ type:'Feature', properties:props, geometry:{ type:'LineString', coordinates:t.trace.map(ll) } });
+    } else if (t.lignes?.length) {
+      lines.push({ type:'Feature', properties:props, geometry:{ type:'MultiLineString', coordinates:t.lignes.map(l => l.map(ll)) } });
     }
-    for (const a of t.aires) if (a.type !== 'NA')
-      L.circleMarker([a.lat, a.lon], { radius:4, color:'#17302B', weight:1.5, fillColor:'#fff', fillOpacity:1 }).bindTooltip(esc(a.nom)).addTo(grp);
-    grp.on('click', () => openSheet(t.id));
-    const s = start(t);
-    if (s) L.tooltip({ permanent:true, direction:'right', className:'lbl', offset:[6, 0] }).setLatLng(s).setContent(esc(t.riviere)).addTo(grp);
-    layers[t.id] = grp;
+    for (const a of t.aires) if (a.type !== 'NA') aires.push({ type:'Feature', properties:{ id:t.id, nom:a.nom, type:a.type }, geometry:{ type:'Point', coordinates:[a.lon, a.lat] } });
   }
+  map.addSource('rivers', { type:'geojson', data:{ type:'FeatureCollection', features:lines }, lineMetrics:true });
+  map.addSource('flow', { type:'geojson', data:{ type:'FeatureCollection', features:arrows } });
+  map.addSource('aires', { type:'geojson', data:{ type:'FeatureCollection', features:aires } });
+  map.addImage('flow-arrow', arrowImage(), { pixelRatio:2 });
+  map.addLayer({ id:'river-glow', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 9, 13, 18], 'line-opacity':0.22, 'line-blur':3 } });
+  map.addLayer({ id:'river-casing', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#0e1217', 'line-width':['interpolate',['linear'],['zoom'], 7, 4.5, 13, 9], 'line-opacity':0.7 } });
+  map.addLayer({ id:'river-line', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 2.5, 13, 6] } });
+  map.addLayer({ id:'river-sel', type:'line', source:'rivers', filter:['==',['get','id'],''], layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#e8a33d', 'line-width':['interpolate',['linear'],['zoom'], 7, 4, 13, 9], 'line-opacity':0.9 } }, 'river-line');
+  map.addLayer({ id:'flow-arrows', type:'symbol', source:'flow', minzoom:9.5, layout:{ 'symbol-placement':'line', 'symbol-spacing':['interpolate',['linear'],['zoom'], 10, 70, 14, 110], 'icon-image':'flow-arrow', 'icon-size':['interpolate',['linear'],['zoom'], 10, .75, 14, 1.1], 'icon-allow-overlap':true, 'icon-ignore-placement':true, 'icon-rotation-alignment':'map', 'icon-pitch-alignment':'map' } });
+  map.addLayer({ id:'aires', type:'circle', source:'aires', minzoom:9, paint:{ 'circle-radius':['interpolate',['linear'],['zoom'], 9, 3.5, 14, 7], 'circle-color':['match',['get','type'],'E','#4cc38a','D','#e8a33d','#ffffff'], 'circle-stroke-color':'#0e1217', 'circle-stroke-width':2 } });
+  for (const l of ['river-line','river-glow','aires']) {
+    map.on('click', l, e => { const id = e.features[0].properties.id; if (id) openFiche(id); });
+    map.on('mouseenter', l, () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', l, () => map.getCanvas().style.cursor = '');
+  }
+  const tip = new maplibregl.Popup({ closeButton:false, closeOnClick:false, offset:10 });
+  map.on('mousemove', 'aires', e => { const p = e.features[0].properties; tip.setLngLat(e.lngLat).setHTML(`<b>${esc(p.nom)}</b><br>${{E:'Embarquement',D:'Débarquement',ED:'Embarquement et débarquement'}[p.type] || ''}`).addTo(map); });
+  map.on('mouseleave', 'aires', () => tip.remove());
+  // étiquettes
+  for (const t of DATA.troncons){
+    const s = start(t); if (!s) continue;
+    const el = document.createElement('div'); el.className = 'lbl'; el.innerHTML = `<i style="background:${COLORS[state(t).k]}"></i>${esc(t.riviere)}`;
+    el.onclick = () => openFiche(t.id);
+    t._lbl = new maplibregl.Marker({ element:el, anchor:'left', offset:[8, 0] }).setLngLat(ll(s)).addTo(map);
+  }
+}
+
+function filterMap(shownIds){
+  const f = ['in', ['get','id'], ['literal', shownIds]];
+  for (const l of ['river-glow','river-casing','river-line','flow-arrows','aires']) if (map.getLayer(l)) map.setFilter(l, f);
+  for (const t of DATA.troncons) if (t._lbl) t._lbl.getElement().style.display = shownIds.includes(t.id) ? '' : 'none';
 }
 
 // ---------- Liste ----------
@@ -205,127 +352,143 @@ function render(){
   const order = { ouvert:0, risque:1, possible:2, ferme:3, saison:4 };
   shown.sort((a, b) => filters.has('pres') && me ? a._d - b._d : (order[state(a).k] - order[state(b).k]) || a.riviere.localeCompare(b.riviere));
   const nOpen = ts.filter(t => t.ouvert).length;
-  $('#summary').textContent = nOpen === 0 ? 'Aucun parcours ouvert aujourd’hui' : nOpen === 1 ? '1 parcours ouvert aujourd’hui' : `${nOpen} parcours ouverts aujourd’hui`;
+  $('#summary').innerHTML = nOpen === 0 ? 'Aucun parcours ouvert aujourd’hui' : `<b>${nOpen}</b> parcours ouvert${nOpen > 1 ? 's' : ''} aujourd’hui sur ${ts.length}`;
   $('#list').innerHTML = shown.length ? shown.map(t => {
     const st = state(t), r = reason(t);
     return `<li class="row" data-id="${esc(t.id)}" tabindex="0">
-      <div class="name">${esc(t.riviere)} ${favs.has(t.id) ? '<span aria-label="suivie">★</span>' : ''}</div>
-      <span class="badge b-${st.k}">${st.label}</span>
+      <div class="name">${esc(t.riviere)}${favs.has(t.id) ? ' <span style="color:var(--accent)" aria-label="suivie">★</span>' : ''}</div>
+      <span class="badge s-${st.k}">${st.label}</span>
       <div class="sub">${esc(shortName(t))}${t.longueurKm ? ` · ${fmt(t.longueurKm)} km` : ''}${t._d != null && filters.has('pres') ? ` · à ${Math.round(t._d)} km` : ''}${r ? `<br>${esc(r)}` : ''}</div>
       ${gauge(t)}
-    </li>`; }).join('') : `<li class="row"><div class="sub">Rien à afficher avec ces filtres. ${filters.has('fav') ? 'Ajoutez des rivières avec ☆ dans leur fiche.' : ''}</div></li>`;
-  for (const [id, g] of Object.entries(layers)) shown.some(t => t.id === id) ? g.addTo(map) : g.remove();
+    </li>`; }).join('') : `<li class="row"><div class="sub">Rien à afficher avec ces filtres. ${filters.has('fav') ? 'Suivez des rivières depuis leur fiche.' : ''}</div></li>`;
+  if (map.getLayer('river-line')) filterMap(shown.map(t => t.id));
   document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', filters.has(c.dataset.f)));
 }
-const shortName = t => t.nom.replace(/^(La|Le|L')\s?[^,]*?(,\s*|\s(?=de |entre |en aval|du |à ))/i, '').replace(/^./, c => c.toUpperCase());
-
-$('#list').addEventListener('click', e => { const r = e.target.closest('.row[data-id]'); if (r) openSheet(r.dataset.id); });
-$('#list').addEventListener('keydown', e => { if (e.key === 'Enter'){ const r = e.target.closest('.row[data-id]'); if (r) openSheet(r.dataset.id); } });
+$('#list').addEventListener('click', e => { const r = e.target.closest('.row[data-id]'); if (r) openFiche(r.dataset.id); });
+$('#list').addEventListener('keydown', e => { if (e.key === 'Enter'){ const r = e.target.closest('.row[data-id]'); if (r) openFiche(r.dataset.id); } });
+$('#list').addEventListener('mouseover', e => { const r = e.target.closest('.row[data-id]'); if (r && map.getLayer('river-sel') && !current) map.setFilter('river-sel', ['==',['get','id'], r.dataset.id]); });
+$('#list').addEventListener('mouseleave', () => { if (map.getLayer('river-sel') && !current) map.setFilter('river-sel', ['==',['get','id'],'']); });
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
   const f = c.dataset.f;
   if (filters.has(f)) filters.delete(f); else filters.add(f);
-  if (f === 'pres' && filters.has('pres') && !me){
-    navigator.geolocation?.getCurrentPosition(p => { me = [p.coords.latitude, p.coords.longitude]; L.circleMarker(me, { radius:7, color:'#fff', weight:3, fillColor:'#3C7FB5', fillOpacity:1 }).addTo(map); render(); },
-      () => { filters.delete('pres'); render(); $('#notices').innerHTML = '<div class="notice">Position indisponible : autorisez la localisation pour trier par distance.</div>'; });
-  }
+  if (f === 'pres' && filters.has('pres') && !me) locate(render);
   store.set('filters', [...filters].filter(x => x !== 'pres')); render();
 }));
+$('#panel-toggle').onclick = () => document.body.classList.toggle('panel-small');
 
 // ---------- Fiche ----------
-function openSheet(id, push = true){
-  const t = DATA.troncons.find(x => x.id === id); if (!t) return;
-  const st = state(t), r = reason(t), sh = $('#sheet');
-  const today = new Date().toISOString().slice(0, 10);
-  const days = (t.meteo || []).filter(d => d.date >= today).slice(0, 4);
-  const pr = t.prevision || {};
-  const nav = (a) => `https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lon}`;
-  const typ = { ED:'E/D', E:'E', D:'D', NA:'✕' };
-  const typLong = { ED:'Embarquement et débarquement', E:'Embarquement', D:'Débarquement', NA:'Accès interdit' };
-  sh.innerHTML = `
-  <div class="top">
-    <button class="back" id="close">‹ Tous les parcours</button>
-    <h2 id="s-title">${esc(t.riviere)}</h2>
-    <p class="where">${esc(t.nom)}</p>
-  </div>
-  <section>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-      <span class="badge b-${st.k}" style="font-size:18px">${st.label}</span>
-      <button class="star" id="fav" aria-pressed="${favs.has(t.id)}" aria-label="Suivre cette rivière">${favs.has(t.id) ? '★ Suivie' : '☆ Suivre'}</button>
-    </div>
-    ${r ? `<p style="margin:10px 0 0">${esc(r)}</p>` : ''}
-    <p class="big-q" style="margin:14px 0 4px">${fmt(t.debit)} <small>m³/s</small></p>
-    <p style="margin:0 0 8px;font-size:14px;color:var(--soft)">Débit ${t.debitHeure ? 'mesuré le ' + esc(t.debitHeure.slice(8,10) + '/' + t.debitHeure.slice(5,7) + ' à ' + t.debitHeure.slice(11,16)) : 'officiel du ' + esc(t.officiel?.date || '?')} · station ${esc(t.station?.nom || t.station?.code)}</p>
-    ${gauge(t, true)}
-  </section>
-  <section>
-    <h3>Les prochains jours</h3>
-    ${days.length ? `<div class="days">${days.map(d => `<div class="day"><div class="d">${dayName(d.date)}</div><div class="i" aria-hidden="true">${WX(d.code)}</div><div class="r">${d.pluie == null ? '–' : fmt(d.pluie) + ' mm'}</div><div class="d">${d.tmax != null ? Math.round(d.tmax) + '°' : ''}</div></div>`).join('')}</div>` : '<p>Météo indisponible.</p>'}
-    <div class="outlook o-${esc(pr.niveau)}"><b>${esc(pr.texte || 'Pas de prévision')}</b><br><span style="font-size:13px;color:var(--soft)">Estimation basée sur le débit, sa tendance et la pluie prévue. Seul l’affichage officiel du jour fait foi.</span></div>
-  </section>
-  <section>
-    <h3>Débit sur 7 jours</h3>
-    ${spark(t)}
-  </section>
-  <section>
-    <h3>Le parcours</h3>
-    <div class="facts">
-      ${t.longueurKm ? `<div><b>${fmt(t.longueurKm)} km</b>longueur approx.</div>` : ''}
-      ${t.difficulte ? `<div><b>${esc(t.difficulte)}</b>difficulté</div>` : ''}
-      <div><b>${t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année'}</b>période autorisée</div>
-      <div><b>${fmt(t.min)} – ${fmt(t.max)}</b>débits autorisés (m³/s)</div>
-    </div>
-  </section>
-  <section>
-    <h3>Embarquer et débarquer</h3>
-    ${t.aires.length ? t.aires.map(a => `<div class="aire"><span class="t" title="${typLong[a.type] || ''}">${typ[a.type] || esc(a.type)}</span><div class="n">${esc(a.nom)}<small>${esc(typLong[a.type] || '')}${a.info ? ' · ' + esc(a.info) : ''}</small></div>${a.type !== 'NA' ? `<a href="${nav(a)}" target="_blank" rel="noopener">Itinéraire</a>` : ''}</div>`).join('') : '<p>Aucune aire répertoriée.</p>'}
-    <p style="font-size:13px;color:var(--soft);margin:10px 0 0">On n’embarque et ne débarque que sur les aires désignées.</p>
-  </section>
-  ${t.description ? `<section><h3>Description</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">Lire tout</button></section>` : ''}
-  ${DATA.alertes ? `<section class="alert-box"><h3>Alertes</h3><p style="margin:0 0 10px">Recevez une notification quand ${favs.size ? 'une rivière suivie' : 'un parcours'} ouvre ou ferme : installez l’app gratuite ntfy, puis abonnez-vous.</p><a class="btn" href="${esc(DATA.alertes.url)}" target="_blank" rel="noopener">S’abonner aux alertes</a></section>` : ''}
-  <section><a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">Voir sur Infokayak (site officiel)</a></section>`;
-  sh.hidden = false; requestAnimationFrame(() => sh.classList.add('on'));
-  sh.scrollTop = 0;
-  $('#close').onclick = () => history.state?.sheet ? history.back() : closeSheet();
-  $('#close').focus();
-  $('#fav').onclick = e => { favs.has(t.id) ? favs.delete(t.id) : favs.add(t.id); store.set('favs', [...favs]); e.target.setAttribute('aria-pressed', favs.has(t.id)); e.target.textContent = favs.has(t.id) ? '★ Suivie' : '☆ Suivre'; render(); };
-  const more = $('#more'); if (more) more.onclick = () => { $('#desc').classList.remove('short'); more.remove(); };
-  if (layers[t.id]?.getBounds) { const b = layers[t.id].getBounds(); if (b.isValid()) map.fitBounds(b, { padding:[30, 30], maxZoom:13 }); }
-  if (push) history.pushState({ sheet:id }, '', '#' + encodeURIComponent(id).replace(/%2D/g,'-'));
+function bearingOf(a, b){ // cap géographique de a vers b ([lat,lon])
+  const r = Math.PI/180, y = Math.sin((b[1]-a[1])*r)*Math.cos(b[0]*r), x = Math.cos(a[0]*r)*Math.sin(b[0]*r) - Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos((b[1]-a[1])*r);
+  return (Math.atan2(y, x) / r + 360) % 360;
 }
-function closeSheet(){ const sh = $('#sheet'); sh.classList.remove('on'); setTimeout(() => { sh.hidden = true }, 260); }
-window.addEventListener('popstate', e => e.state?.sheet ? openSheet(e.state.sheet, false) : closeSheet());
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) $('#close').click(); });
+const COMPASS = ['nord','nord-est','est','sud-est','sud','sud-ouest','ouest','nord-ouest'];
+function openFiche(id, push = true){
+  const t = DATA.troncons.find(x => x.id === id); if (!t) return;
+  current = id;
+  const st = state(t), r = reason(t), v = $('#view-fiche');
+  const days = (t.meteo || []).filter(d => d.date >= todayISO()).slice(0, 4);
+  const pr = t.prevision || {};
+  const typ = { ED:'E/D', E:'E', D:'D', NA:'✕' }, typLong = { ED:'Embarquement et débarquement', E:'Embarquement', D:'Débarquement', NA:'Accès interdit' };
+  const tr = t.trace, cap = tr?.length > 1 ? bearingOf(tr[0], tr.at(-1)) : null;
+  const drop = t.altitudes ? Math.round(t.altitudes[0] - t.altitudes[1]) : null;
+  v.innerHTML = `
+    <button class="back" id="close">‹ Tous les parcours</button>
+    <div><h2>${esc(t.riviere)}</h2><p class="where">${esc(t.nom)}</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <span class="badge s-${st.k}" style="font-size:13px">${st.label}</span>
+      <button class="star" id="fav" aria-pressed="${favs.has(t.id)}">${favs.has(t.id) ? '★ Suivie' : '☆ Suivre'}</button>
+    </div>
+    ${r ? `<p style="margin:-4px 0 0;font-size:13px">${esc(r)}</p>` : ''}
+    <div class="card"><h3>Débit</h3>
+      <p class="big-q">${fmt(t.debit)} <small>m³/s</small></p>
+      <p class="meta">${t.debitHeure ? 'Mesuré le ' + esc(t.debitHeure.slice(8,10) + '/' + t.debitHeure.slice(5,7) + ' à ' + t.debitHeure.slice(11,16)) : 'Relevé officiel du ' + esc(t.officiel?.date || '?')} · station ${esc(t.station?.nom || t.station?.code)}</p>
+      ${gauge(t, true)}
+    </div>
+    <div class="card"><h3>Les prochains jours</h3>
+      ${days.length ? `<div class="days">${days.map(d => `<div class="day"><div class="d">${dayName(d.date)}</div><div class="i" aria-hidden="true">${WX(d.code)}</div><div class="r">${d.pluie == null ? '–' : fmt(d.pluie) + ' mm'}</div><div class="d">${d.tmax != null ? Math.round(d.tmax) + '°' : ''}</div></div>`).join('')}</div>` : '<p class="meta">Météo indisponible.</p>'}
+      <div class="outlook o-${esc(pr.niveau)}"><b>${esc(pr.texte || 'Pas de prévision')}</b><small>Estimation basée sur le débit, sa tendance et la pluie prévue. Seul l’affichage officiel du jour fait foi.</small></div>
+    </div>
+    <div class="card"><h3>Débit sur 7 jours</h3>${spark(t)}</div>
+    <div class="card"><h3>Le parcours</h3>
+      <div class="stats">
+        ${t.longueurKm ? `<div class="stat"><span class="l">Longueur approx.</span><span class="v">${fmt(t.longueurKm)} km</span></div>` : ''}
+        ${t.difficulte ? `<div class="stat"><span class="l">Difficulté</span><span class="v">${esc(t.difficulte)}</span></div>` : ''}
+        <div class="stat"><span class="l">Période autorisée</span><span class="v">${t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année'}</span></div>
+        <div class="stat"><span class="l">Débits autorisés</span><span class="v">${fmt(t.min)} – ${fmt(t.max)} m³/s</span></div>
+        ${drop != null && drop > 0 ? `<div class="stat"><span class="l">Dénivelé</span><span class="v">−${drop} m</span></div>` : ''}
+      </div>
+      ${cap != null ? `<div class="flow"><svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate(${cap}deg)"><circle cx="13" cy="13" r="12" fill="none" stroke="#33404b"/><path d="M13 5v15M8 10l5-5 5 5" fill="none" stroke="#49b6c4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>La rivière coule vers ${(c => /^[eo]/.test(c) ? 'l’' + c : 'le ' + c)(COMPASS[Math.round(cap / 45) % 8])}. Les flèches sur la carte montrent le sens du courant.</span></div>` : ''}
+      <p style="margin:10px 0 0"><button class="link" id="fly">Survoler le parcours en 3D</button></p>
+    </div>
+    <div class="card"><h3>Embarquer et débarquer</h3>
+      ${t.aires.length ? t.aires.map((a, i) => `<div class="aire"><span class="t" title="${typLong[a.type] || ''}">${typ[a.type] || esc(a.type)}</span><div class="n" data-i="${i}">${esc(a.nom)}<small>${esc(typLong[a.type] || '')}${a.info ? ' · ' + esc(a.info) : ''}</small></div>${a.type !== 'NA' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lon}" target="_blank" rel="noopener">Itinéraire</a>` : ''}</div>`).join('') : '<p class="meta">Aucune aire répertoriée.</p>'}
+      <p class="meta" style="margin:8px 0 0">On n’embarque et ne débarque que sur les aires désignées.</p>
+    </div>
+    ${t.description ? `<div class="card"><h3>Description</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">Lire tout</button></div>` : ''}
+    ${DATA.alertes ? `<div class="card"><h3>Alertes</h3><p style="margin:0 0 10px;font-size:13px">Recevez une notification quand ${favs.size ? 'une rivière suivie' : 'un parcours'} ouvre ou ferme : installez l’app gratuite ntfy, puis abonnez-vous.</p><a class="btn" href="${esc(DATA.alertes.url)}" target="_blank" rel="noopener">S’abonner aux alertes</a></div>` : ''}
+    <a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">Voir sur Infokayak (site officiel)</a>`;
+  $('#view-list').hidden = true; v.hidden = false; $('#panel').scrollTop = 0;
+  document.body.classList.remove('panel-small');
+  $('#close').onclick = () => history.state?.fiche ? history.back() : closeFiche();
+  $('#fav').onclick = e => { favs.has(t.id) ? favs.delete(t.id) : favs.add(t.id); store.set('favs', [...favs]); e.target.setAttribute('aria-pressed', favs.has(t.id)); e.target.textContent = favs.has(t.id) ? '★ Suivie' : '☆ Suivre'; render(); };
+  $('#more')?.addEventListener('click', e => { $('#desc').classList.remove('short'); e.target.remove(); });
+  $('#fly').onclick = () => flyAlong(t);
+  v.querySelectorAll('.aire .n').forEach(n => n.onclick = () => { const a = t.aires[+n.dataset.i]; map.flyTo({ center:[a.lon, a.lat], zoom:15, pitch:60, padding:panelPad() }); });
+  if (map.getLayer('river-sel')) map.setFilter('river-sel', ['==',['get','id'], id]);
+  frame(t);
+  if (push) history.pushState({ fiche:id }, '', '#' + id);
+}
+function frame(t){
+  const pts = t.trace || t.lignes?.flat() || t.aires.map(a => [a.lat, a.lon]); if (!pts?.length) return;
+  const b = new maplibregl.LngLatBounds(); pts.forEach(p => b.extend(ll(p)));
+  // la rivière « monte » vers le haut de l'écran : on regarde vers l'aval
+  const bearing = t.trace?.length > 1 ? bearingOf(t.trace[0], t.trace.at(-1)) : 0;
+  map.fitBounds(b, { padding:panelPad(), bearing, pitch:55, maxZoom:14, duration:1600 });
+}
+function flyAlong(t){
+  const tr = t.trace; if (!tr || tr.length < 2) return frame(t);
+  // descente caméra le long de la rivière, de l'amont vers l'aval
+  const step = Math.max(1, Math.floor(tr.length / 12)); const pts = tr.filter((_, i) => i % step === 0).concat([tr.at(-1)]);
+  let i = 0;
+  const next = () => {
+    if (i >= pts.length - 1 || current !== t.id) return;
+    const a = pts[i], b = pts[Math.min(i + 1, pts.length - 1)]; i++;
+    map.easeTo({ center:ll(a), bearing:bearingOf(a, b), pitch:68, zoom:14, duration:1400, easing:x => x, padding:panelPad() });
+    map.once('moveend', next);
+  };
+  next();
+}
+function closeFiche(){
+  current = null; $('#view-fiche').hidden = true; $('#view-list').hidden = false;
+  if (map.getLayer('river-sel')) map.setFilter('river-sel', ['==',['get','id'],'']);
+}
+window.addEventListener('popstate', e => e.state?.fiche ? openFiche(e.state.fiche, false) : closeFiche());
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && current) $('#close').click(); });
 
 // ---------- Données ----------
 async function load(){
   let status = 0;
   try {
     const r = await fetch('data.json?t=' + Date.now(), { cache:'no-store' });
-    status = r.status;
-    if (!r.ok) throw new Error(r.status);
+    status = r.status; if (!r.ok) throw new Error(r.status);
     DATA = await r.json();
   } catch {
-    $('#maj').textContent = 'Pas de données';
-    $('#summary').textContent = 'Impossible de charger les données';
-    const why = location.protocol === 'file:'
-      ? 'La page est ouverte comme fichier sur votre ordinateur. Elle doit être ouverte depuis son adresse GitHub Pages (https://VOTRE-NOM.github.io/…), où la tâche horaire dépose les données.'
-      : status === 404
-        ? 'Les données n’ont pas encore été générées. Sur GitHub, ouvrez l’onglet Actions, lancez « Mise à jour des données » et vérifiez qu’elle se termine en vert.'
-        : 'Vérifiez votre connexion internet puis rechargez la page.';
-    $('#notices').innerHTML = `<div class="notice">${why}</div>`;
+    $('#maj').textContent = 'Pas de données'; $('#summary').textContent = 'Impossible de charger les données';
+    $('#notices').innerHTML = `<div class="notice">${location.protocol === 'file:' ? 'La page est ouverte comme fichier : ouvrez-la depuis son adresse GitHub Pages.' : status === 404 ? 'Les données n’ont pas encore été générées : lancez « Mise à jour des données » dans l’onglet Actions du dépôt.' : 'Vérifiez votre connexion internet puis rechargez la page.'}</div>`;
     return;
   }
   const d = new Date(DATA.maj), age = (Date.now() - d) / 36e5;
-  $('#maj').textContent = 'Mis à jour ' + d.toLocaleString('fr-BE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
+  $('#maj').innerHTML = 'Mis à jour<br>' + d.toLocaleString('fr-BE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
   const notes = [];
   if (age > 6) notes.push(`Données vieilles de ${Math.round(age)} h : la mise à jour automatique semble arrêtée.`);
   if (DATA.erreurs?.length) notes.push('Certaines sources n’ont pas répondu (' + DATA.erreurs.map(e => e.split(':')[0]).join(', ') + ') : informations partielles.');
   $('#notices').innerHTML = notes.map(n => `<div class="notice">${esc(n)}</div>`).join('');
-  drawMap(); render();
-  const h = decodeURIComponent(location.hash.slice(1)); if (h) openSheet(h, false);
+  const ready = () => { addData(); render(); const h = decodeURIComponent(location.hash.slice(1)); if (h) openFiche(h, false); };
+  // n'attend pas les tuiles (un fond ou le relief indisponible ne doit pas bloquer les rivières)
+  let done = false; const go = () => { if (!done && map.isStyleLoaded()) { done = true; ready(); } };
+  go(); if (!done) { map.once('style.load', go); map.once('load', go); const iv = setInterval(() => { go(); if (done) clearInterval(iv); }, 200); }
+  render();
 }
-const setHH = () => document.documentElement.style.setProperty('--hh', document.querySelector('header').offsetHeight + 'px');
-setHH(); addEventListener('resize', setHH);
 load();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
