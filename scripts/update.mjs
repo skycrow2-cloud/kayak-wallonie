@@ -26,7 +26,7 @@ async function getJSON(url, { tries = 3, timeout = 30000 } = {}) {
     try {
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), timeout);
-      const r = await fetchImpl(url, { signal: ctrl.signal, headers: { 'User-Agent': 'kayak-wallonie (projet perso, GitHub Actions)' } });
+      const r = await fetchImpl(url, { signal: ctrl.signal, headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', 'Accept': 'application/json,text/plain,*/*', 'Referer': 'https://kayak.spw.wallonie.be/public/home' } });
       clearTimeout(t);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return await r.json();
