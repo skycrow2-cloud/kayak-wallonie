@@ -308,6 +308,8 @@ async function main() {
     return rec;
   });
 
+  for (const r of out) if (r.trace) console.log(`  ${r.id.padEnd(10)} ${String(r.longueurKm).padStart(5)} km  amont ${r.trace[0].join(',')} -> aval ${r.trace.at(-1).join(',')}  alt ${r.altitudes?.join(' -> ') ?? '?'}`);
+
   // ---------- Alertes ----------
   const prev = await readJSON(STATE, {});
   const next = {};
