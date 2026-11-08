@@ -175,7 +175,7 @@ const start = t => { const a = t.aires.find(x => x.type === 'E' || x.type === 'E
 
 // ---------- Carte ----------
 const map = L.map('map', { zoomControl:false, attributionControl:true }).setView([50.05, 5.35], 8);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18, attribution:'© OpenStreetMap' }).addTo(map);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO' }).addTo(map);
 L.control.zoom({ position:'topright' }).addTo(map);
 const layers = {};
 
@@ -297,11 +297,22 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet
 
 // ---------- Données ----------
 async function load(){
+  let status = 0;
   try {
     const r = await fetch('data.json?t=' + Date.now(), { cache:'no-store' });
+    status = r.status;
+    if (!r.ok) throw new Error(r.status);
     DATA = await r.json();
   } catch {
-    $('#maj').textContent = 'Hors ligne'; $('#summary').textContent = 'Impossible de charger les données. Vérifiez votre connexion.'; return;
+    $('#maj').textContent = 'Pas de données';
+    $('#summary').textContent = 'Impossible de charger les données';
+    const why = location.protocol === 'file:'
+      ? 'La page est ouverte comme fichier sur votre ordinateur. Elle doit être ouverte depuis son adresse GitHub Pages (https://VOTRE-NOM.github.io/…), où la tâche horaire dépose les données.'
+      : status === 404
+        ? 'Les données n’ont pas encore été générées. Sur GitHub, ouvrez l’onglet Actions, lancez « Mise à jour des données » et vérifiez qu’elle se termine en vert.'
+        : 'Vérifiez votre connexion internet puis rechargez la page.';
+    $('#notices').innerHTML = `<div class="notice">${why}</div>`;
+    return;
   }
   const d = new Date(DATA.maj), age = (Date.now() - d) / 36e5;
   $('#maj').textContent = 'Mis à jour ' + d.toLocaleString('fr-BE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
