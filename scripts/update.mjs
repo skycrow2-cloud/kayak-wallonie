@@ -129,14 +129,15 @@ async function orientTraces(geo, aires) {
   const med = a => { if (!a?.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
   for (const [id, t] of Object.entries(out)) {
     const zA = med(elev[id]?.A), zB = med(elev[id]?.B);
-    let reverse = null;
-    if (zA != null && zB != null && Math.abs(zA - zB) >= 3) reverse = zA < zB;
-    if (reverse === null) { // repli : les embarquements (E) sont plutôt en amont, les débarquements (D) en aval
-      const near = p => haversine(p, t.trace[0]) < haversine(p, t.trace.at(-1)) ? 1 : -1;
-      let score = 0;
-      for (const a of aires.filter(a => a.tro === id)) score += a.type === 'E' ? near([a.lat, a.lon]) : a.type === 'D' ? -near([a.lat, a.lon]) : 0;
-      reverse = score < 0;
-    }
+    // Les aires d'embarquement (E, amont) et de débarquement (D, aval) font foi ; l'altitude sert si elles ne disent rien.
+    const near = p => haversine(p, t.trace[0]) < haversine(p, t.trace.at(-1)) ? 1 : -1;
+    let score = 0;
+    for (const a of aires.filter(a => a.tro === id)) score += a.type === 'E' ? near([a.lat, a.lon]) : a.type === 'D' ? -near([a.lat, a.lon]) : 0;
+    const byAires = score ? score < 0 : null;
+    const byAlt = zA != null && zB != null && Math.abs(zA - zB) >= 3 ? zA < zB : null;
+    let reverse = byAires ?? byAlt ?? false;
+    t.methode = byAires != null ? 'aires' : byAlt != null ? 'altitude' : 'aucune';
+    if (byAires != null && byAlt != null && byAires !== byAlt) t.methode += ' (altitude en désaccord)';
     if (reverse) t.trace.reverse();
     t.altitudes = zA != null ? (reverse ? [zB, zA] : [zA, zB]) : null;
   }
@@ -308,7 +309,7 @@ async function main() {
     return rec;
   });
 
-  for (const r of out) if (r.trace) console.log(`  ${r.id.padEnd(10)} ${String(r.longueurKm).padStart(5)} km  amont ${r.trace[0].join(',')} -> aval ${r.trace.at(-1).join(',')}  alt ${r.altitudes?.join(' -> ') ?? '?'}`);
+  for (const r of out) if (r.trace) console.log(`  ${r.id.padEnd(10)} ${String(r.longueurKm).padStart(5)} km  amont ${r.trace[0].join(',')} -> aval ${r.trace.at(-1).join(',')}  alt ${r.altitudes?.join(' -> ') ?? '?'}  [${stat.traces?.[r.id]?.methode}]`);
 
   // ---------- Alertes ----------
   const prev = await readJSON(STATE, {});
