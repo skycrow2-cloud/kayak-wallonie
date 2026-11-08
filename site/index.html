@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kayak Wallonie</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#17302B">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -175,7 +176,7 @@ const start = t => { const a = t.aires.find(x => x.type === 'E' || x.type === 'E
 
 // ---------- Carte ----------
 const map = L.map('map', { zoomControl:false, attributionControl:true }).setView([50.05, 5.35], 8);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO' }).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
 L.control.zoom({ position:'topright' }).addTo(map);
 const layers = {};
 
