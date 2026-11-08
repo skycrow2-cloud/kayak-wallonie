@@ -1,0 +1,58 @@
+name: Mise à jour des données
+
+on:
+  schedule:
+    - cron: '23 * * * *'   # toutes les heures
+  workflow_dispatch:        # bouton « Run workflow » pour lancer à la main
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Récupérer l'état précédent (alertes, géométries)
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: kayak-state-${{ github.run_id }}
+          restore-keys: kayak-state-
+
+      - name: Collecter les données
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          WATCH: ${{ vars.WATCH }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: node scripts/update.mjs
+
+      - name: Sauver l'état
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: kayak-state-${{ github.run_id }}
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
