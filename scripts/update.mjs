@@ -166,7 +166,7 @@ async function fetchStatic() {
       lat: r4(f.geometry.coordinates[1]), lon: r4(f.geometry.coordinates[0]),
     }));
   const traces = await orientTraces(geo, aires);
-  return { v: 2, geo, aires, traces, fetched: new Date().toISOString() };
+  return { v: 3, geo, aires, traces, fetched: new Date().toISOString() };
 }
 
 // ---------- Hydrométrie (KiWIS) ----------
@@ -253,7 +253,7 @@ async function main() {
 
   let stat = await readJSON(STATIC_CACHE, null);
   const staleDays = stat ? (Date.now() - Date.parse(stat.fetched)) / 864e5 : Infinity;
-  if (staleDays > 7 || stat?.v !== 2) {
+  if (staleDays > 7 || stat?.v !== 3) {
     try { stat = await fetchStatic(); await mkdir('state', { recursive: true }); await writeFile(STATIC_CACHE, JSON.stringify(stat)); }
     catch (e) { errors.push('géométries: ' + e.message); stat ||= { geo: {}, aires: [] }; }
   }
