@@ -1,5 +1,5 @@
 // Fichiers du site : réseau d'abord, copie en cache pour le hors-ligne. Tuiles et bibliothèques externes : non gérées.
-const C = 'kayak-v12';
+const C = 'kayak-v13';
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(C).then(c => c.addAll(['./', 'index.html', 'manifest.webmanifest', 'icon.svg']))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== C).map(x => caches.delete(x)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

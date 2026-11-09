@@ -516,7 +516,7 @@ function openFiche(id, push = true){
       <div class="stats">
         ${t.longueurKm ? `<div class="stat"><span class="l">Longueur approx.</span><span class="v">${fmt(t.longueurKm)} km</span></div>` : ''}
         ${t.difficulte ? `<div class="stat"><span class="l">Difficulté</span><span class="v">${esc(t.difficulte)}</span></div>` : ''}
-        <div class="stat"><span class="l">Période autorisée</span><span class="v">${t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année'}</span></div>
+        <div class="stat"><span class="l">Période autorisée</span><span class="v" style="color:${t.saison ? 'var(--ok)' : 'var(--danger)'}" title="${t.saison ? 'Nous sommes dans la période autorisée' : 'Hors de la période autorisée'}">${t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année'}</span></div>
         <div class="stat"><span class="l">Débits autorisés</span><span class="v">${fmt(t.min)} – ${fmt(t.max)} m³/s</span></div>
         ${drop != null && drop > 0 ? `<div class="stat"><span class="l">Dénivelé</span><span class="v">−${drop} m</span></div>` : ''}
       </div>
