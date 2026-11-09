@@ -11,8 +11,8 @@ async function get(url, n = 1500, opts = {}) {
 const steps = (process.env.PROBE || 'lu,fr,vl,osm').split(',');
 if (steps.includes('lu')) {
   const kml = await get('https://www.inondations.lu/stations.kml', 200);
-  console.log('LU stations:', [...kml.matchAll(/<name>([^<]*)<\/name>/g)].map(m => m[1]).join(' | '));
-  await get('https://www.inondations.lu/water-level-export/all', 1200);
+  console.log('LU kml len', kml.length, kml.slice(0, 1500)); console.log('LU names', [...kml.matchAll(/<name>\s*(?:<!\[CDATA\[)?([^<\]]*)/g)].map(m => m[1]).join(' | ').slice(0, 3000));
+  await get('https://www.inondations.lu/water-level-export/all', 3000);
   await get('https://heichwaasser.lu/api/v1/rivers', 1500);
 }
 if (steps.includes('fr')) {
@@ -27,6 +27,10 @@ if (steps.includes('vl')) {
 }
 if (steps.includes('osm')) {
   const q = '[out:json][timeout:60];way["waterway"="river"]["name"~"Semoy|Semois"](49.78,4.72,49.92,4.98);out geom;';
-  const t = await get('https://overpass-api.de/api/interpreter', 0, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { ...UA, 'Content-Type': 'application/x-www-form-urlencoded' } });
-  try { const j = JSON.parse(t); console.log('OSM ways', j.elements.length, 'pts', j.elements.reduce((s, e) => s + (e.geometry?.length || 0), 0)); } catch { console.log(t.slice(0, 300)); }
+  for (const host of ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
+    for (const ua of ['kayak-wallonie/1.0 (https://github.com/skycrow2-cloud/kayak-wallonie)']) {
+      const t = await get(host + '?data=' + encodeURIComponent(q), 0, { headers: { 'User-Agent': ua, 'Accept': 'application/json' } });
+      try { const j = JSON.parse(t); console.log('OSM OK', host, 'ways', j.elements.length, 'pts', j.elements.reduce((s, e) => s + (e.geometry?.length || 0), 0)); } catch { console.log('OSM KO', host, t.slice(0, 200)); }
+    }
+  }
 }
