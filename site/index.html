@@ -160,24 +160,66 @@ svg.spark{width:100%;height:70px;display:block;overflow:visible}
 body.panel-hidden #panel{transform:translateX(-100%)}
 body.panel-hidden #panel-toggle{left:0}
 body.panel-hidden #panel-toggle svg{transform:rotate(180deg)}
-@media (max-width:760px){
-  :root{--panel-w:100vw}
-  #panel{top:auto;height:48dvh;width:100%;border-right:0;border-top:1px solid var(--panel-border);border-radius:14px 14px 0 0;transition:height .2s ease}
-  body.panel-small #panel{height:96px;overflow:hidden}
-  #panel-toggle{position:absolute;left:50%!important;transform:translateX(-50%);top:4px;width:56px;height:18px;border:0;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;justify-content:center}
-  #panel-toggle svg{display:none}
-  #panel-toggle::before{content:'';width:40px;height:4px;border-radius:2px;background:var(--muted-2)}
-  body.panel-hidden #panel{transform:none}
-  #panel{padding-top:22px}
-  #panel-toggle{position:fixed;top:auto;bottom:calc(48dvh - 22px);z-index:5}
-  body.panel-small #panel-toggle{bottom:74px}
-  #pitch-control{bottom:calc(48dvh + 60px)}
-  body.panel-small #pitch-control{bottom:156px}
-  #info{bottom:calc(48dvh + 12px)}
-  body.panel-small #info{bottom:108px}
-  .attrib-pop{bottom:calc(48dvh + 12px)}
+/* ================= Téléphone (inspiré de GPX 3D) ================= */
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent}
+#sheet-grab{display:none}
+/* écran tactile : cibles de 44 px, pas de zoom iOS sur la liste déroulante */
+@media (pointer:coarse){
+  .chip{min-height:36px;padding:7px 13px;font-size:13px}
+  select.chip{font-size:16px}
+  .row{padding:12px 8px}
+  .back,.link{padding:8px 0}
+  .star{width:40px;height:40px}
+  #pitch-slider{height:36px}
+  .chip,.row,.pill,.zoom-btn,.back,.link,.star,#sheet-grab{touch-action:manipulation}
 }
-@media (prefers-reduced-motion:reduce){#panel{transition:none}}
+/* téléphone en portrait : panneau en tiroir sous la carte, à tirer (aperçu / moitié / plein écran) */
+@media (max-width:760px) and (min-height:501px){
+  :root{--panel-w:100vw;--sheet-h:46dvh}
+  #panel{top:auto;left:0;right:0;width:100%;height:var(--sheet-h);border-right:0;border-top:1px solid var(--glass-border);border-radius:18px 18px 0 0;
+    padding:0 14px calc(12px + env(safe-area-inset-bottom));transition:height .25s cubic-bezier(.2,.8,.2,1);box-shadow:0 -6px 24px rgba(0,0,0,.35)}
+  body.sheet-dragging #panel{transition:none}
+  body.sheet-peek #panel{overflow:hidden}
+  #sheet-grab{display:flex;position:sticky;top:0;z-index:3;margin:0 -14px 2px;height:26px;align-items:center;justify-content:center;cursor:grab;
+    background:linear-gradient(rgba(20,25,34,.55),rgba(20,25,34,0));touch-action:none}
+  #sheet-grab::before{content:'';width:42px;height:5px;border-radius:3px;background:rgba(238,234,225,.35)}
+  #panel-toggle{display:none}
+  .brand img{width:40px;height:40px;margin:-6px -2px -6px -6px}
+  .brand h1{font-size:15px}
+  .brand h1 small{display:none}
+  .brand .maj{font-size:10.5px}
+  .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -14px;padding:0 14px}
+  .filters::-webkit-scrollbar{display:none}
+  .filters > *{flex:none}
+  /* commandes de carte : colonne à droite au-dessus du tiroir, inclinaison en haut à gauche (comme GPX 3D) */
+  .ctl-stack{top:calc(10px + env(safe-area-inset-top))}
+  #pitch-control{left:10px;right:auto;top:calc(10px + env(safe-area-inset-top));bottom:auto;height:120px}
+  #pitch-slider{width:96px}
+  #info{bottom:calc(var(--sheet-px, 46dvh) + 10px);transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
+  .attrib-pop{bottom:calc(var(--sheet-px, 46dvh) + 10px);right:calc(10px + var(--ctl) + 8px)}
+  body.sheet-full #info, body.sheet-full .ctl-stack{opacity:0;pointer-events:none}
+  .legend{width:min(250px,calc(100vw - 80px));max-height:calc(100dvh - var(--sheet-px, 46dvh) - 30px)}
+  .lbl{font-size:11px;padding:1px 6px}
+  body.zoom-low .lbl{display:none}
+  .fiche h2{font-size:20px}
+  body.fiche-open .brand{display:none}
+}
+/* téléphone en paysage : panneau latéral étroit et compact */
+@media (max-height:500px) and (orientation:landscape){
+  :root{--panel-w:min(300px,42vw)}
+  #panel{padding:8px 12px calc(8px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));gap:8px}
+  .brand h1 small,.brand .maj{display:none}
+  .brand img{width:34px;height:34px;margin:-4px}
+  #pitch-control{height:104px;right:calc(20px + var(--ctl))}
+  #pitch-slider{width:84px}
+  .ctl-stack{gap:6px}
+  body.zoom-low .lbl{display:none}
+  .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .filters > *{flex:none}
+  body.fiche-open .brand{display:none}
+}
+@media (prefers-reduced-motion:reduce){#panel,#info{transition:none}}
 </style>
 </head>
 <body>
@@ -185,6 +227,7 @@ body.panel-hidden #panel-toggle svg{transform:rotate(180deg)}
 
 <button id="panel-toggle" aria-label="Masquer ou afficher le panneau"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
 <aside id="panel" aria-label="Parcours">
+  <div id="sheet-grab" role="button" tabindex="0" aria-label="Agrandir ou réduire le panneau"></div>
   <div class="brand"><img src="icon.svg" alt=""><h1>Kayak Wallonie <small style="font-size:11px;color:var(--text-muted);font-weight:400">& alentours</small></h1><span class="maj" id="maj">Chargement…</span></div>
   <div id="view-list" style="display:flex;flex-direction:column;gap:12px">
     <div class="filters" role="toolbar" aria-label="Filtres">
@@ -334,8 +377,9 @@ const map = new maplibregl.Map({
   center:[5.35, 50.05], zoom:7.6, maxPitch:80, attributionControl:false,
 });
 map.getCanvas().addEventListener('contextmenu', e => e.preventDefault());
-const panelPad = () => matchMedia('(max-width:760px)').matches
-  ? { top:40, left:30, right:60, bottom: document.body.classList.contains('panel-small') ? 110 : innerHeight * .48 + 20 }
+const isSheet = () => matchMedia('(max-width:760px) and (min-height:501px)').matches;
+const panelPad = () => isSheet()
+  ? { top:60, left:30, right:62, bottom: Math.min(sheetPx() + 20, innerHeight * .6) }
   : { top:50, bottom:50, right:70, left: document.body.classList.contains('panel-hidden') ? 50 : 380 + 40 };
 
 // commandes
@@ -498,11 +542,10 @@ document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () =
   if (f === 'pres' && filters.has('pres') && !me) locate(render);
   store.set('filters', [...filters].filter(x => x !== 'pres')); render();
 }));
-const mobile = () => matchMedia('(max-width:760px)').matches;
 $('#region').value = store.get('region', '');
 $('#region').onchange = e => { store.set('region', e.target.value); render(); fitShown(); };
-$('#panel-toggle').onclick = () => document.body.classList.toggle(mobile() ? 'panel-small' : 'panel-hidden');
-if (!mobile() && store.get('panelHidden', false)) document.body.classList.add('panel-hidden');
+$('#panel-toggle').onclick = () => document.body.classList.toggle('panel-hidden');
+if (!isSheet() && store.get('panelHidden', false)) document.body.classList.add('panel-hidden');
 new MutationObserver(() => store.set('panelHidden', document.body.classList.contains('panel-hidden'))).observe(document.body, { attributes:true, attributeFilter:['class'] });
 
 // ---------- Fiche ----------
@@ -557,8 +600,8 @@ function openFiche(id, push = true){
     ${t.description && t.officiel !== false ? `<div class="card"><h3>Description</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">Lire tout</button></div>` : ''}
     ${DATA.alertes ? `<div class="card"><h3>Alertes</h3><p style="margin:0 0 10px;font-size:13px">Recevez une notification quand ${favs.size ? 'une rivière suivie' : 'un parcours'} ouvre ou ferme : installez l’app gratuite ntfy, puis abonnez-vous.</p><a class="btn" href="${esc(DATA.alertes.url)}" target="_blank" rel="noopener">S’abonner aux alertes</a></div>` : ''}
     ${t.officiel === false ? '' : '<a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">Voir sur Infokayak (site officiel)</a>'}`;
-  $('#view-list').hidden = true; v.hidden = false; $('#panel').scrollTop = 0;
-  document.body.classList.remove('panel-small');
+  $('#view-list').hidden = true; v.hidden = false; document.body.classList.add('fiche-open'); $('#panel').scrollTop = 0;
+  if (isSheet() && sheetState === 'peek') setSheet('half');
   $('#close').onclick = () => history.state?.fiche ? history.back() : closeFiche();
   $('#fav').onclick = e => { favs.has(t.id) ? favs.delete(t.id) : favs.add(t.id); store.set('favs', [...favs]); e.target.setAttribute('aria-pressed', favs.has(t.id)); e.target.textContent = favs.has(t.id) ? '★' : '☆'; render(); };
   $('#more')?.addEventListener('click', e => { $('#desc').classList.remove('short'); e.target.remove(); });
@@ -589,7 +632,7 @@ function flyAlong(t){
   next();
 }
 function closeFiche(){
-  current = null; $('#view-fiche').hidden = true; $('#view-list').hidden = false;
+  current = null; $('#view-fiche').hidden = true; $('#view-list').hidden = false; document.body.classList.remove('fiche-open');
   if (map.getLayer('river-sel')) map.setFilter('river-sel', ['==',['get','id'],'']);
 }
 window.addEventListener('popstate', e => e.state?.fiche ? openFiche(e.state.fiche, false) : closeFiche());
@@ -619,6 +662,50 @@ async function load(){
   go(); if (!done) { map.once('style.load', go); map.once('load', go); const iv = setInterval(() => { go(); if (done) clearInterval(iv); }, 200); }
   render();
 }
+// ---------- tiroir (téléphone en portrait) ----------
+const SNAP = { peek: () => 132, half: () => Math.round(innerHeight * .46), full: () => Math.round(innerHeight * .9) };
+let sheetState = 'half';
+function sheetPx(){ return $('#panel').getBoundingClientRect().height || SNAP.half(); }
+function syncSheetVar(){ document.documentElement.style.setProperty('--sheet-px', sheetPx() + 'px'); }
+function setSheet(st, px){
+  if (!isSheet()) return;
+  sheetState = st;
+  document.body.classList.remove('sheet-peek','sheet-half','sheet-full'); document.body.classList.add('sheet-' + st);
+  const h = px ?? SNAP[st]();
+  document.documentElement.style.setProperty('--sheet-h', h + 'px');
+  document.documentElement.style.setProperty('--sheet-px', h + 'px');
+  if (st === 'peek') $('#panel').scrollTop = 0;
+}
+(() => {
+  const grab = $('#sheet-grab'), panel = $('#panel'); let y0 = 0, h0 = 0, moved = false, t0 = 0;
+  grab.addEventListener('pointerdown', e => { if (!isSheet()) return; y0 = e.clientY; h0 = sheetPx(); moved = false; t0 = performance.now(); grab.setPointerCapture(e.pointerId); document.body.classList.add('sheet-dragging'); });
+  grab.addEventListener('pointermove', e => {
+    if (!document.body.classList.contains('sheet-dragging')) return;
+    const dy = y0 - e.clientY; if (Math.abs(dy) > 4) moved = true;
+    const h = Math.max(SNAP.peek() - 30, Math.min(SNAP.full(), h0 + dy));
+    document.documentElement.style.setProperty('--sheet-h', h + 'px'); document.documentElement.style.setProperty('--sheet-px', h + 'px');
+  });
+  const end = e => {
+    if (!document.body.classList.contains('sheet-dragging')) return;
+    document.body.classList.remove('sheet-dragging');
+    const h = sheetPx(), v = (y0 - e.clientY) / Math.max(1, performance.now() - t0); // vitesse (px/ms)
+    if (!moved){ setSheet(sheetState === 'peek' ? 'half' : sheetState === 'half' ? 'full' : 'peek'); return; }
+    if (v > .5) setSheet(h < SNAP.half() ? 'half' : 'full');
+    else if (v < -.5) setSheet(h > SNAP.half() ? 'half' : 'peek');
+    else setSheet(Object.keys(SNAP).reduce((b, k) => Math.abs(SNAP[k]() - h) < Math.abs(SNAP[b]() - h) ? k : b, 'half'));
+  };
+  grab.addEventListener('pointerup', end); grab.addEventListener('pointercancel', end);
+  grab.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSheet(sheetState === 'full' ? 'half' : 'full'); } });
+  // faire défiler la liste vers le haut depuis l'aperçu ouvre le tiroir
+  panel.addEventListener('wheel', e => { if (isSheet() && sheetState === 'peek' && e.deltaY > 0) setSheet('half'); }, { passive:true });
+  new ResizeObserver(syncSheetVar).observe(panel);
+  const onResize = () => { if (isSheet()) setSheet(sheetState); else { document.documentElement.style.removeProperty('--sheet-h'); document.body.classList.remove('sheet-peek','sheet-half','sheet-full'); } };
+  addEventListener('resize', onResize); onResize();
+})();
+map.on('zoom', () => document.body.classList.toggle('zoom-low', map.getZoom() < 8.6));
+// toucher la carte en plein écran ramène le tiroir à mi-hauteur
+map.on('movestart', e => { if (e.originalEvent && isSheet() && sheetState === 'full') setSheet('half'); });
+
 $('#legend').innerHTML = $('#legend').innerHTML.replace('${K_E}', kayakSvg('E', 24)).replace('${K_D}', kayakSvg('D', 24)).replace('${K_ED}', kayakSvg('ED', 24));
 load();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
