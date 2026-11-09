@@ -207,7 +207,8 @@ async function fetchRain(points) {
 
 // ---------- Prévision indicative ----------
 function outlook({ open, q, min, max, serie, meteo }) {
-  if (q == null || !min) return { niveau: 'inconnu', texte: 'Pas assez de données' };
+  if (q == null) return { niveau: 'inconnu', texte: 'Débit indisponible pour le moment' };
+  if (!min) return { niveau: 'inconnu', texte: 'Pas de seuils de débit publiés : suivez l’état officiel du jour' };
   const today = new Date().toISOString().slice(0, 10);
   const fut = (meteo || []).filter(d => d.date >= today);
   const rain3 = fut.slice(0, 3).reduce((s, d) => s + (d.pluie || 0), 0);
