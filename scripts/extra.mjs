@@ -58,28 +58,36 @@ export function pathBetween(lines, A, B) {
   return { trace: path.reverse().map(k => pts.get(k)), km: Math.round(dist.get(e) * 10) / 10 };
 }
 
-async function osmLines(route) {
-  const pad = 0.04, la = [route.start[0], route.end[0]], lo = [route.start[1], route.end[1]];
-  const bbox = [Math.min(...la) - pad, Math.min(...lo) - pad, Math.max(...la) + pad, Math.max(...lo) + pad].map(r4).join(',');
-  const q = `[out:json][timeout:90];way["waterway"~"^(river|canal)$"]["name"~"^(${route.osm})$",i](${bbox});out geom;`;
+const bboxOf = r => { const pad = 0.04, la = [r.start[0], r.end[0]], lo = [r.start[1], r.end[1]];
+  return [Math.min(...la) - pad, Math.min(...lo) - pad, Math.max(...la) + pad, Math.max(...lo) + pad].map(r4); };
+
+// une seule requête Overpass pour tous les parcours (les miroirs publics sont lents)
+async function osmAll() {
+  const parts = ROUTES.map(r => `way["waterway"~"^(river|canal)$"]["name"~"^(${r.osm})$",i](${bboxOf(r).join(',')});`).join('');
+  const q = `[out:json][timeout:170];(${parts});out tags geom;`;
   let last;
   for (const host of OVERPASS) {
-    try { const j = await getJSON(host + '?data=' + encodeURIComponent(q), { timeout: 120000, tries: 1 }); return j.elements.filter(e => e.geometry).map(e => e.geometry.map(g => [r4(g.lat), r4(g.lon)])); }
-    catch (e) { last = e; }
+    try { const j = await getJSON(host + '?data=' + encodeURIComponent(q), { timeout: 180000, tries: 1 }); return j.elements.filter(e => e.geometry); }
+    catch (e) { last = e; console.warn('  Overpass', host, e.message); }
   }
   throw last;
 }
 
 export async function extraStatic(prev) {
   const out = { v: 1, fetched: new Date().toISOString(), routes: {} };
+  let ways = [];
+  try { ways = await osmAll(); } catch (e) {
+    console.warn('  OSM indisponible :', e.message);
+    // on garde l'ancien cache et on réessaiera dans 6 h
+    return { ...(prev || { v: 1, routes: {} }), v: 1, fetched: new Date(Date.now() - (7 * 864e5 - 6 * 36e5)).toISOString() };
+  }
   for (const r of ROUTES) {
-    try {
-      const lines = await osmLines(r);
-      const p = pathBetween(lines, r.start, r.end);
-      if (p) out.routes[r.id] = p;
-      else console.warn('  tracé introuvable', r.id, lines.length, 'lignes OSM');
-    } catch (e) { console.warn('  OSM', r.id, e.message); if (prev?.routes?.[r.id]) out.routes[r.id] = prev.routes[r.id]; }
-    await sleep(1200);
+    const re = new RegExp(`^(${r.osm})$`, 'i'), [s, w, n, e] = bboxOf(r);
+    const lines = ways.filter(x => re.test(x.tags?.name || '') && x.geometry.some(g => g.lat >= s && g.lat <= n && g.lon >= w && g.lon <= e))
+      .map(x => x.geometry.map(g => [r4(g.lat), r4(g.lon)]));
+    const p = pathBetween(lines, r.start, r.end);
+    if (p) out.routes[r.id] = p;
+    else { console.warn('  tracé introuvable', r.id, lines.length, 'lignes OSM'); if (prev?.routes?.[r.id]) out.routes[r.id] = prev.routes[r.id]; }
   }
   return out;
 }
