@@ -49,7 +49,7 @@ export const ROUTES = [
 
   // ---------------- Luxembourg (règlement grand-ducal sur le canotage) ----------------
   {
-    id: 'LU-SURE-1', pays: 'LU', riviere: 'Sûre', osm: 'Sûre|Sauer|Sauer|Sûre / Sauer',
+    id: 'LU-SURE-1', pays: 'LU', riviere: 'Sûre', osm: 'Sûre|Sauer',
     nom: 'La Sûre, de Martelange à Neimillen (Bigonville)',
     start: [49.8312, 5.7372], end: [49.8686, 5.8000],
     gauge: { provider: 'lu', station: 81, label: 'Bigonville' },

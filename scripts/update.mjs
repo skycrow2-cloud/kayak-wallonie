@@ -320,7 +320,7 @@ async function main() {
   if (!SKIP_EXTRA) {
     try {
       let ex = await readJSON(EXTRA_CACHE, null);
-      if (!ex || ex.v !== 1 || (Date.now() - Date.parse(ex.fetched)) / 864e5 > 7) {
+      if (!ex || ex.v !== 2 || (Date.now() - Date.parse(ex.fetched)) / 864e5 > 7) {
         console.log('Tracés OSM des parcours hors Wallonie…');
         ex = await extraStatic(ex); await mkdir('state', { recursive: true }); await writeFile(EXTRA_CACHE, JSON.stringify(ex));
       }

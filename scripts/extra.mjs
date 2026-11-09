@@ -63,7 +63,7 @@ const bboxOf = r => { const pad = 0.04, la = [r.start[0], r.end[0]], lo = [r.sta
 
 // une seule requête Overpass pour tous les parcours (les miroirs publics sont lents)
 async function osmAll() {
-  const parts = ROUTES.map(r => `way["waterway"~"^(river|canal)$"]["name"~"^(${r.osm})$",i](${bboxOf(r).join(',')});`).join('');
+  const parts = ROUTES.map(r => `way["waterway"~"^(river|canal)$"]["name"~"${r.osm}",i](${bboxOf(r).join(',')});`).join('');
   const q = `[out:json][timeout:170];(${parts});out tags geom;`;
   let last;
   for (const host of OVERPASS) {
@@ -74,15 +74,15 @@ async function osmAll() {
 }
 
 export async function extraStatic(prev) {
-  const out = { v: 1, fetched: new Date().toISOString(), routes: {} };
+  const out = { v: 2, fetched: new Date().toISOString(), routes: {} };
   let ways = [];
   try { ways = await osmAll(); } catch (e) {
     console.warn('  OSM indisponible :', e.message);
     // on garde l'ancien cache et on réessaiera dans 6 h
-    return { ...(prev || { v: 1, routes: {} }), v: 1, fetched: new Date(Date.now() - (7 * 864e5 - 6 * 36e5)).toISOString() };
+    return { ...(prev || { v: 1, routes: {} }), v: 2, fetched: new Date(Date.now() - (7 * 864e5 - 6 * 36e5)).toISOString() };
   }
   for (const r of ROUTES) {
-    const re = new RegExp(`^(${r.osm})$`, 'i'), [s, w, n, e] = bboxOf(r);
+    const re = new RegExp(r.osm, 'i'), [s, w, n, e] = bboxOf(r);
     const lines = ways.filter(x => re.test(x.tags?.name || '') && x.geometry.some(g => g.lat >= s && g.lat <= n && g.lon >= w && g.lon <= e))
       .map(x => x.geometry.map(g => [r4(g.lat), r4(g.lon)]));
     const p = pathBetween(lines, r.start, r.end);
@@ -104,9 +104,10 @@ async function gaugeLU(id) {
 }
 const KIWIS = 'https://download.waterinfo.be/tsmdownload/KiWIS/KiWIS?service=kisters&type=queryServices&datasource=1&format=json';
 async function gaugeVL(st) {
-  const l = await getJSON(`${KIWIS}&request=getTimeseriesList&station_no=${st}&ts_name=P.60&returnfields=station_name,ts_id,parametertype_name,ts_unitsymbol`);
-  const rows = l.slice(1); const pick = rows.find(r => r[2] === 'Q') || rows.find(r => r[2] === 'H');
-  if (!pick) throw new Error('pas de série P.60 pour ' + st);
+  const l = await getJSON(`${KIWIS}&request=getTimeseriesList&station_no=${st}&returnfields=station_name,ts_id,parametertype_name,ts_unitsymbol,ts_name`);
+  const rows = l.slice(1), find = (n, p) => rows.find(r => r[4] === n && r[2] === p);
+  const pick = find('P.60', 'Q') || find('P.60', 'H') || find('Meas', 'Q') || find('O.15', 'Q') || find('Meas', 'H') || find('O.15', 'H');
+  if (!pick) throw new Error('pas de série horaire pour ' + st);
   const v = await getJSON(`${KIWIS}&request=getTimeseriesValues&ts_id=${pick[1]}&period=P7D&returnfields=Timestamp,Value`);
   const d = (v[0]?.data || []).filter(x => x[1] != null);
   const H = pick[2] === 'H';
@@ -120,11 +121,16 @@ async function gaugeFR(code, g = 'Q') {
   return { valeur: d.length ? Math.round(d.at(-1).resultat_obs / k * 1000) / 1000 : null, heure: d.length ? localISO(d.at(-1).date_obs) : null,
     unite: g === 'Q' ? 'm³/s' : 'm', grandeur: g === 'Q' ? 'Débit' : 'Hauteur', serie: thin(d.map(x => [localISO(x.date_obs), Math.round(x.resultat_obs / k * 1000) / 1000]), 3) };
 }
+async function gaugeFRany(code, g) {
+  const a = await gaugeFR(code, g || 'Q').catch(() => null);
+  if (a?.valeur != null) return a;
+  return gaugeFR(code, (g || 'Q') === 'Q' ? 'H' : 'Q');
+}
 async function gauge(g) {
   if (!g) return null;
   if (g.provider === 'lu') return gaugeLU(g.station);
   if (g.provider === 'vl') return gaugeVL(g.station);
-  if (g.provider === 'fr') return gaugeFR(g.station, g.grandeur);
+  if (g.provider === 'fr') return gaugeFRany(g.station, g.grandeur);
 }
 
 // ---------- règles ----------
