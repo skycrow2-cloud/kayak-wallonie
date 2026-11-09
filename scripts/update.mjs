@@ -4,10 +4,13 @@
 
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { buildExtras, extraStatic } from './extra.mjs';
 
 const OUT = process.env.OUT_FILE || 'site/data.json';
 const STATE = process.env.STATE_FILE || 'state/state.json';
 const STATIC_CACHE = process.env.STATIC_CACHE || 'state/static.json';
+const EXTRA_CACHE = process.env.EXTRA_CACHE || 'state/static-extra.json';
+const SKIP_EXTRA = process.env.SKIP_EXTRA === '1';
 const NTFY_TOPIC = process.env.NTFY_TOPIC || '';
 const NTFY_SERVER = process.env.NTFY_SERVER || 'https://ntfy.sh';
 const WATCH = (process.env.WATCH || '').split(',').map(s => s.trim()).filter(Boolean); // vide = tous
@@ -307,10 +310,25 @@ async function main() {
       aires: stat.aires.filter(a => a.tro === t.nomtro),
     };
     rec.prevision = outlook({ open, q: rec.debit, min, max, serie, meteo: rec.meteo });
+    Object.assign(rec, { pays: 'WAL', region: 'Wallonie', officiel: true, unite: 'm³/s', grandeur: 'Débit', saisonsTexte: String(t.typtro) === '2' ? '1/10 – 15/3' : 'Toute l’année' });
     return rec;
   });
 
   for (const r of out) if (r.trace) console.log(`  ${r.id.padEnd(10)} ${String(r.longueurKm).padStart(5)} km  amont ${r.trace[0].join(',')} -> aval ${r.trace.at(-1).join(',')}  alt ${r.altitudes?.join(' -> ') ?? '?'}  [${stat.traces?.[r.id]?.methode}]`);
+
+  // ---------- Hors Wallonie ----------
+  if (!SKIP_EXTRA) {
+    try {
+      let ex = await readJSON(EXTRA_CACHE, null);
+      if (!ex || ex.v !== 1 || (Date.now() - Date.parse(ex.fetched)) / 864e5 > 7) {
+        console.log('Tracés OSM des parcours hors Wallonie…');
+        ex = await extraStatic(ex); await mkdir('state', { recursive: true }); await writeFile(EXTRA_CACHE, JSON.stringify(ex));
+      }
+      const { recs, errors: e2 } = await buildExtras(ex, fetchRain);
+      out.push(...recs); errors.push(...e2.map(x => 'hors Wallonie: ' + x));
+      for (const r of recs) console.log(`  ${r.id.padEnd(16)} ${r.statut.padEnd(7)} ${r.debit ?? '-'} ${r.unite ?? ''} trace ${r.trace.length} pts ${r.longueurKm} km${r.traceApprox ? ' (approx.)' : ''}`);
+    } catch (e) { errors.push('hors Wallonie: ' + e.message); }
+  }
 
   // ---------- Alertes ----------
   const prev = await readJSON(STATE, {});

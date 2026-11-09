@@ -1,10 +1,11 @@
 // Test hors-ligne : simule les réponses des API (formats relevés le 08/11/2026).
 import { rmSync } from 'node:fs';
 process.chdir(new URL('..', import.meta.url).pathname);
-for (const f of ['test/out/state.json', 'test/out/static.json']) rmSync(f, { force: true });
+for (const f of ['test/out/state.json', 'test/out/static.json', 'test/out/static-extra.json']) rmSync(f, { force: true });
 process.env.OUT_FILE = 'test/out/data.json';
 process.env.STATE_FILE = 'test/out/state.json';
 process.env.STATIC_CACHE = 'test/out/static.json';
+process.env.EXTRA_CACHE = 'test/out/static-extra.json';
 process.env.NTFY_TOPIC = 'test-topic';
 
 const mk = (id, typ, nav, code, q, min, max, nom, riv, desc) => ({
@@ -48,6 +49,11 @@ globalThis.__mockFetch = async (url, opts = {}) => {
   if (url.includes('MapServer/3/')) return ok(geoAi);
   if (url.includes('getTimeseriesList')) return ok(kiwisList);
   if (url.includes('getTimeseriesValues')) return ok(kiwisVals);
+  if (url.includes('interpreter')) { const bb = decodeURIComponent(url).match(/\(([-\d.,]+)\);out/)[1].split(',').map(Number); const a=[bb[0]+0.04,bb[1]+0.04], b=[bb[2]-0.04,bb[3]-0.04]; const g=[0,0.25,0.5,0.75,1].map(f=>({lat:a[0]+(b[0]-a[0])*f+(f*(1-f))*0.02, lon:a[1]+(b[1]-a[1])*f})); return ok({ elements:[{ geometry:g.slice(0,3) },{ geometry:g.slice(2) }] }); }
+  if (url.includes('heichwaasser')) return ok({ city:'Bollendorf', current:{ timestamp:'2026-11-09T07:45:00', value:57 }, measurements: Array.from({length:96},(_,i)=>({ timestamp:new Date(now-i*9e5).toISOString().slice(0,19), value:50+i%9 })) });
+  if (url.includes('waterinfo') && url.includes('getTimeseriesList')) return ok([['station_name','ts_id','parametertype_name','ts_unitsymbol'],['Herentals/Kleine Nete','1','Q','m³/s']]);
+  if (url.includes('waterinfo') && url.includes('getTimeseriesValues')) return ok([{ data: Array.from({length:48},(_,i)=>[new Date(now-(47-i)*36e5).toISOString(), 2+i/100]) }]);
+  if (url.includes('hubeau')) return ok({ data: Array.from({length:48},(_,i)=>({ date_obs:new Date(now-i*36e5).toISOString(), resultat_obs: 4500+i*10 })) });
   if (url.includes('/elevation')) { const lo = new URL(url).searchParams.get('longitude').split(',').map(Number); return ok({ elevation: lo.map(x => Math.round(x * 100)) }); }
   if (url.includes('open-meteo')) return ok(meteo);
   if (url.includes('ntfy')) return ok({});

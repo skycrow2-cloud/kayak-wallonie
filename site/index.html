@@ -44,6 +44,8 @@ button{font:inherit;color:inherit}
 .filters{display:flex;gap:6px;flex-wrap:wrap}
 .chip{font-size:12px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(27,34,44,.4);cursor:pointer}
 .chip:hover{border-color:#3a4450}
+.chip:is(select){appearance:none;-webkit-appearance:none;padding-right:24px;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8a33d' stroke-width='2'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:14px}
+.chip option{background:#1b222a;color:var(--text)}
 .chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .summary{font-size:14px;font-weight:500;margin:2px 0 0}
 .summary b{color:var(--accent);font-variant-numeric:tabular-nums}
@@ -57,7 +59,7 @@ ul.list{list-style:none;margin:0 -8px;padding:0}
 .row .gauge{grid-column:1/-1;margin-top:4px}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
 .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
-.s-ouvert{color:var(--ok)} .s-ferme{color:var(--text-muted)} .s-risque{color:var(--warn)} .s-possible{color:var(--accent-2)} .s-saison{color:var(--muted-2)}
+.s-ouvert{color:var(--ok)} .s-ferme{color:var(--text-muted)} .s-risque{color:var(--warn)} .s-possible{color:var(--accent-2)} .s-saison{color:var(--muted-2)} .s-info{color:#a99be0}
 
 /* jauge : bande turquoise = débits autorisés, curseur orange = débit actuel */
 .gauge{position:relative;height:26px}
@@ -183,12 +185,13 @@ body.panel-hidden #panel-toggle svg{transform:rotate(180deg)}
 
 <button id="panel-toggle" aria-label="Masquer ou afficher le panneau"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
 <aside id="panel" aria-label="Parcours">
-  <div class="brand"><img src="icon.svg" alt=""><h1>Kayak Wallonie</h1><span class="maj" id="maj">Chargement…</span></div>
+  <div class="brand"><img src="icon.svg" alt=""><h1>Kayak Wallonie <small style="font-size:11px;color:var(--text-muted);font-weight:400">& alentours</small></h1><span class="maj" id="maj">Chargement…</span></div>
   <div id="view-list" style="display:flex;flex-direction:column;gap:12px">
     <div class="filters" role="toolbar" aria-label="Filtres">
       <button class="chip" data-f="ouvert" aria-pressed="false">Ouverts</button>
       <button class="chip" data-f="fav" aria-pressed="false">Mes rivières</button>
       <button class="chip" data-f="pres" aria-pressed="false">Près de moi</button>
+      <select class="chip" id="region" aria-label="Région"><option value="">Toutes les régions</option><option value="WAL">Wallonie</option><option value="VL">Flandre et Bruxelles</option><option value="LU">Luxembourg</option><option value="DE">Allemagne</option><option value="FR">France</option></select>
     </div>
     <p class="summary" id="summary"></p>
     <div id="notices"></div>
@@ -220,7 +223,9 @@ body.panel-hidden #panel-toggle svg{transform:rotate(180deg)}
   <div class="lg"><i class="ln" style="background:#f2c94c"></i>Ouvert, proche d’une fermeture</div>
   <div class="lg"><i class="ln" style="background:#49b6c4"></i>Fermé, ouverture possible</div>
   <div class="lg"><i class="ln" style="background:#8b93a1"></i>Fermé</div>
-  <div class="lg"><i class="ln" style="background:#5d6672"></i>Hors saison (1/10 – 15/3)</div>
+  <div class="lg"><i class="ln" style="background:#5d6672"></i>Hors période autorisée</div>
+  <div class="lg"><i class="ln" style="background:#a99be0"></i>À vérifier (aucun seuil publié)</div>
+  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><path d="M1 6h20" stroke="#4cc38a" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Trait pointillé : état estimé (hors Wallonie)</div>
   <div class="lg"><i class="ln" style="background:#e8a33d"></i>Parcours sélectionné</div>
   <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><path d="M1 6h20" stroke="#4cc38a" stroke-width="2.5"/><path d="M8 2.5l4 3.5-4 3.5" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Sens du courant</div>
   <h4>Aires</h4>
@@ -238,17 +243,26 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store = { get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
 let DATA = null, me = null, current = null, favs = new Set(store.get('favs', [])), filters = new Set(store.get('filters', []));
-const COLORS = { ouvert:'#4cc38a', ferme:'#8b93a1', risque:'#f2c94c', possible:'#49b6c4', saison:'#5d6672' };
+const COLORS = { ouvert:'#4cc38a', ferme:'#8b93a1', risque:'#f2c94c', possible:'#49b6c4', saison:'#5d6672', info:'#a99be0' };
+const unit = t => t.unite || 'm³/s';
+const REGIONS = { WAL:'Wallonie', VL:'Flandre et Bruxelles', LU:'Luxembourg', DE:'Allemagne', FR:'France' };
 const fmt = n => n == null ? '–' : new Intl.NumberFormat('fr-BE', { maximumFractionDigits: n < 10 ? 2 : n < 100 ? 1 : 0 }).format(n);
 const ll = p => [p[1], p[0]]; // [lat,lon] -> [lon,lat]
 
 function state(t){
+  if (t.officiel === false){
+    if (t.statut === 'saison') return { k:'saison', label:'Hors saison' };
+    if (t.statut === 'ferme') return { k:'ferme', label:'Fermé (estimé)' };
+    if (t.statut === 'info') return { k:'info', label:'À vérifier' };
+    return t.prevision?.niveau === 'risque' ? { k:'risque', label:'Autorisé, à surveiller' } : { k:'ouvert', label:'Autorisé (estimé)' };
+  }
   if (!t.saison) return { k:'saison', label:'Hors saison' };
   if (t.ouvert) return t.prevision?.niveau === 'risque' ? { k:'risque', label:'Ouvert, à surveiller' } : { k:'ouvert', label:'Ouvert' };
   if (t.prevision?.niveau === 'possible') return { k:'possible', label:'Ouverture possible' };
   return { k:'ferme', label:'Fermé' };
 }
 function reason(t){
+  if (t.officiel === false) return t.justif;
   if (!t.saison) return 'Autorisé du 1er octobre au 15 mars';
   if (t.ouvert) return null;
   if (t.debit != null && t.min && t.debit < t.min) return 'Pas assez d’eau';
@@ -260,7 +274,7 @@ function gauge(t, big){
   const lo = Math.min(t.debit, t.min) / 2, hi = Math.max(t.debit, t.max || t.min * 4) * 1.3;
   const x = v => (Math.log(v) - Math.log(lo)) / (Math.log(hi) - Math.log(lo)) * 100;
   const a = x(t.min), b = t.max ? x(t.max) : 100, m = Math.max(1, Math.min(99, x(t.debit)));
-  return `<div class="gauge${big ? ' big' : ''}" role="img" aria-label="Débit ${fmt(t.debit)} m³/s, plage autorisée ${fmt(t.min)} à ${fmt(t.max)} m³/s">
+  return `<div class="gauge${big ? ' big' : ''}" role="img" aria-label="${esc(t.grandeur || 'Débit')} ${fmt(t.debit)} ${unit(t)}, seuil ${fmt(t.min)}${t.max ? ' à ' + fmt(t.max) : ''} ${unit(t)}">
     <div class="track"></div><div class="band" style="left:${a}%;width:${b - a}%"></div><div class="mark" style="left:${m}%"></div>
     <span class="lab" style="left:${a}%">min ${fmt(t.min)}</span>${t.max ? `<span class="lab" style="left:${Math.min(b, 92)}%">max ${fmt(t.max)}</span>` : ''}
   </div>`;
@@ -277,7 +291,7 @@ function spark(t){
     ${minY != null ? `<rect x="0" y="${maxY ?? 0}" width="${W}" height="${minY - (maxY ?? 0)}" fill="#49b6c4" opacity=".09"/><line x1="0" x2="${W}" y1="${minY}" y2="${minY}" stroke="#49b6c4" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/>` : ''}
     <path d="${path} L${X(s.length - 1)} ${H} L${X(0)} ${H}Z" fill="#e8a33d" opacity=".08"/>
     <path d="${path}" fill="none" stroke="#e8a33d" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
-  <p class="meta" style="margin-top:6px">7 derniers jours. Bande turquoise : débits autorisés (pointillé = minimum).</p>`;
+  <p class="meta" style="margin-top:6px">7 derniers jours. Bande turquoise : plage autorisée (pointillé = minimum).</p>`;
 }
 const ICO = {
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
@@ -338,7 +352,7 @@ pop.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => { basemap = b.d
 $('#terrain-btn').onclick = () => { terrainOn = !terrainOn; store.set('terrain', terrainOn); map.setTerrain(terrainOn ? { source:'terrainSource', exaggeration:1.6 } : null); map.setLayoutProperty('hillshade', 'visibility', terrainOn ? 'visible' : 'none'); syncMenu(); };
 syncMenu();
 function credits(){
-  const used = [BASEMAPS[basemap].attribution, terrainOn ? 'Relief © AWS Open Data / Mapzen' : null, 'Données © SPW (Infokayak, hydrométrie) · Météo Open-Meteo · Rendu MapLibre'].filter(Boolean);
+  const used = [BASEMAPS[basemap].attribution, terrainOn ? 'Relief © AWS Open Data / Mapzen' : null, 'Données © SPW (Infokayak, hydrométrie), VMM/waterinfo.be, AGE Luxembourg (heichwaasser.lu), Hub’Eau · Tracés © OpenStreetMap · Météo Open-Meteo · Rendu MapLibre'].filter(Boolean);
   $('#attrib').innerHTML = used.join('<br>');
 }
 $('#legend-btn').onclick = e => { e.stopPropagation(); const h = $('#legend').hidden = !$('#legend').hidden; e.currentTarget.setAttribute('aria-expanded', !h); };
@@ -401,7 +415,7 @@ function arrowImage(){
 function addData(){
   const lines = [], arrows = [], aires = [];
   for (const t of DATA.troncons){
-    const st = state(t), props = { id:t.id, color:COLORS[st.k] };
+    const st = state(t), props = { id:t.id, color:COLORS[st.k], est: t.officiel === false };
     if (t.trace?.length > 1){
       lines.push({ type:'Feature', properties:props, geometry:{ type:'LineString', coordinates:t.trace.map(ll) } });
       arrows.push({ type:'Feature', properties:props, geometry:{ type:'LineString', coordinates:t.trace.map(ll) } });
@@ -418,10 +432,11 @@ function addData(){
   map.addLayer({ id:'river-glow', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 6, 13, 12], 'line-opacity':0.18, 'line-blur':3 } });
   map.addLayer({ id:'river-casing', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#0e1217', 'line-width':['interpolate',['linear'],['zoom'], 7, 2.8, 13, 5.5], 'line-opacity':0.55 } });
   map.addLayer({ id:'river-line', type:'line', source:'rivers', layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 1.5, 13, 3.5] } });
+  map.addLayer({ id:'river-line-est', type:'line', source:'rivers', layout:{ 'line-cap':'butt', 'line-join':'round' }, paint:{ 'line-dasharray':[2, 1.4], 'line-color':['get','color'], 'line-width':['interpolate',['linear'],['zoom'], 7, 1.5, 13, 3.5] } });
   map.addLayer({ id:'river-sel', type:'line', source:'rivers', filter:['==',['get','id'],''], layout:{ 'line-cap':'round', 'line-join':'round' }, paint:{ 'line-color':'#e8a33d', 'line-width':['interpolate',['linear'],['zoom'], 7, 3, 13, 6.5], 'line-opacity':0.85 } }, 'river-line');
   map.addLayer({ id:'flow-arrows', type:'symbol', source:'flow', minzoom:9.5, layout:{ 'symbol-placement':'line', 'symbol-spacing':['interpolate',['linear'],['zoom'], 10, 70, 14, 110], 'icon-image':'flow-arrow', 'icon-size':['interpolate',['linear'],['zoom'], 10, .6, 14, .85], 'icon-allow-overlap':true, 'icon-ignore-placement':true, 'icon-rotation-alignment':'map', 'icon-pitch-alignment':'map' } });
   map.addLayer({ id:'aires', type:'symbol', source:'aires', minzoom:9, layout:{ 'icon-image':['concat','kayak-',['match',['get','type'],'E','E','D','D','ED']], 'icon-rotate':['get','rot'], 'icon-rotation-alignment':'map', 'icon-pitch-alignment':'map', 'icon-size':['interpolate',['linear'],['zoom'], 9, .7, 12, 1.05, 15, 1.5], 'icon-allow-overlap':true, 'icon-ignore-placement':true } });
-  for (const l of ['river-line','river-glow','aires']) {
+  for (const l of ['river-line','river-line-est','river-glow','aires']) {
     map.on('click', l, e => { const id = e.features[0].properties.id; if (id) openFiche(id); });
     map.on('mouseenter', l, () => map.getCanvas().style.cursor = 'pointer');
     map.on('mouseleave', l, () => map.getCanvas().style.cursor = '');
@@ -438,27 +453,36 @@ function addData(){
   }
 }
 
+function fitShown(){
+  const reg = $('#region').value, b = new maplibregl.LngLatBounds();
+  for (const t of DATA.troncons) if (!reg || (t.pays || 'WAL') === reg) (t.trace || []).forEach(p => b.extend(ll(p)));
+  if (!b.isEmpty()) map.fitBounds(b, { padding:panelPad(), maxZoom:11, duration:900 });
+}
 function filterMap(shownIds){
   const f = ['in', ['get','id'], ['literal', shownIds]];
-  for (const l of ['river-glow','river-casing','river-line','flow-arrows','aires']) if (map.getLayer(l)) map.setFilter(l, f);
+  for (const l of ['river-glow','river-casing','flow-arrows','aires']) if (map.getLayer(l)) map.setFilter(l, f);
+  if (map.getLayer('river-line')) map.setFilter('river-line', ['all', f, ['!', ['get','est']]]);
+  if (map.getLayer('river-line-est')) map.setFilter('river-line-est', ['all', f, ['get','est']]);
   for (const t of DATA.troncons) if (t._lbl) t._lbl.getElement().style.display = shownIds.includes(t.id) ? '' : 'none';
 }
 
 // ---------- Liste ----------
 function render(){
   const ts = DATA.troncons.slice();
-  let shown = ts.filter(t => (!filters.has('ouvert') || t.ouvert) && (!filters.has('fav') || favs.has(t.id)));
+  const reg = $('#region').value;
+  let shown = ts.filter(t => (!filters.has('ouvert') || t.ouvert) && (!filters.has('fav') || favs.has(t.id)) && (!reg || (t.pays || 'WAL') === reg));
   if (filters.has('pres') && me) shown.forEach(t => t._d = start(t) ? distKm(me, start(t)) : 9999);
   const order = { ouvert:0, risque:1, possible:2, ferme:3, saison:4 };
   shown.sort((a, b) => filters.has('pres') && me ? a._d - b._d : (order[state(a).k] - order[state(b).k]) || a.riviere.localeCompare(b.riviere));
   const nOpen = ts.filter(t => t.ouvert).length;
-  $('#summary').innerHTML = nOpen === 0 ? 'Aucun parcours ouvert aujourd’hui' : `<b>${nOpen}</b> parcours ouvert${nOpen > 1 ? 's' : ''} aujourd’hui sur ${ts.length}`;
+  const nOpenS = shown.filter(t => t.ouvert).length;
+  $('#summary').innerHTML = nOpenS === 0 ? `Aucun parcours ouvert aujourd’hui sur ${shown.length}` : `<b>${nOpenS}</b> parcours ouvert${nOpenS > 1 ? 's' : ''} aujourd’hui sur ${shown.length}`;
   $('#list').innerHTML = shown.length ? shown.map(t => {
     const st = state(t), r = reason(t);
     return `<li class="row" data-id="${esc(t.id)}" tabindex="0">
       <div class="name">${esc(t.riviere)}${favs.has(t.id) ? ' <span style="color:var(--accent)" aria-label="suivie">★</span>' : ''}</div>
       <span class="badge s-${st.k}">${st.label}</span>
-      <div class="sub">${esc(shortName(t))}${t.longueurKm ? ` · ${fmt(t.longueurKm)} km` : ''}${t._d != null && filters.has('pres') ? ` · à ${Math.round(t._d)} km` : ''}${r ? `<br>${esc(r)}` : ''}</div>
+      <div class="sub">${t.officiel === false ? esc(t.region) + ' · ' : ''}${esc(shortName(t))}${t.longueurKm ? ` · ${fmt(t.longueurKm)} km` : ''}${t._d != null && filters.has('pres') ? ` · à ${Math.round(t._d)} km` : ''}${r ? `<br>${esc(r)}` : ''}</div>
       ${gauge(t)}
     </li>`; }).join('') : `<li class="row"><div class="sub">Rien à afficher avec ces filtres. ${filters.has('fav') ? 'Suivez des rivières depuis leur fiche.' : ''}</div></li>`;
   if (map.getLayer('river-line')) filterMap(shown.map(t => t.id));
@@ -475,6 +499,8 @@ document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () =
   store.set('filters', [...filters].filter(x => x !== 'pres')); render();
 }));
 const mobile = () => matchMedia('(max-width:760px)').matches;
+$('#region').value = store.get('region', '');
+$('#region').onchange = e => { store.set('region', e.target.value); render(); fitShown(); };
 $('#panel-toggle').onclick = () => document.body.classList.toggle(mobile() ? 'panel-small' : 'panel-hidden');
 if (!mobile() && store.get('panelHidden', false)) document.body.classList.add('panel-hidden');
 new MutationObserver(() => store.set('panelHidden', document.body.classList.contains('panel-hidden'))).observe(document.body, { attributes:true, attributeFilter:['class'] });
@@ -499,25 +525,25 @@ function openFiche(id, push = true){
     <header class="fhead">
       <div class="ftitle"><h2>${esc(t.riviere)}</h2>
         <button class="star" id="fav" aria-pressed="${favs.has(t.id)}" aria-label="${favs.has(t.id) ? 'Ne plus suivre' : 'Suivre cette rivière'}" title="${favs.has(t.id) ? 'Rivière suivie' : 'Suivre cette rivière'}">${favs.has(t.id) ? '★' : '☆'}</button></div>
-      <p class="where">${esc(t.nom)}</p>
+      <p class="where">${esc(t.nom)}${t.region ? ' · ' + esc(t.region) : ''}</p>
       <div class="status"><span class="badge s-${st.k}">${st.label}</span>${r ? `<span class="why">${esc(r)}</span>` : ''}</div>
     </header>
-    <div class="card"><h3>Débit</h3>
-      <p class="big-q">${fmt(t.debit)} <small>m³/s</small></p>
-      <p class="meta">${t.debitHeure ? 'Mesuré le ' + esc(t.debitHeure.slice(8,10) + '/' + t.debitHeure.slice(5,7) + ' à ' + t.debitHeure.slice(11,16)) : 'Relevé officiel du ' + esc(t.officiel?.date || '?')} · station ${esc(t.station?.nom || t.station?.code)}</p>
+    <div class="card"><h3>${esc(t.grandeur || 'Débit')}</h3>
+      <p class="big-q">${fmt(t.debit)} <small>${unit(t)}</small></p>
+      <p class="meta">${t.debit == null ? 'Pas de mesure publiée' : t.debitHeure ? 'Mesuré le ' + esc(t.debitHeure.slice(8,10) + '/' + t.debitHeure.slice(5,7) + ' à ' + t.debitHeure.slice(11,16)) : 'Relevé officiel du ' + esc(t.officiel?.date || '?')} · station ${esc(t.station?.nom || t.station?.code)}</p>
       ${gauge(t, true)}
     </div>
     <div class="card"><h3>Les prochains jours</h3>
       ${days.length ? `<div class="days">${days.map(d => `<div class="day"><div class="d">${dayName(d.date)}</div><div class="i" aria-hidden="true">${WX(d.code)}</div><div class="r">${d.pluie == null ? '–' : fmtMm(d.pluie) + ' mm'}</div><div class="d">${d.tmax != null ? Math.round(d.tmax) + '°' : ''}</div></div>`).join('')}</div>` : '<p class="meta">Météo indisponible.</p>'}
-      <div class="outlook o-${esc(pr.niveau)}"><span class="dot"></span><div><b>${esc(pr.texte || 'Pas de prévision')}</b><small>Estimation basée sur le débit, sa tendance et la pluie prévue. Seul l’affichage officiel du jour fait foi.</small></div></div>
+      <div class="outlook o-${esc(pr.niveau)}"><span class="dot"></span><div><b>${esc(pr.texte || 'Pas de prévision')}</b><small>${t.officiel === false ? '' : 'Estimation basée sur le débit, sa tendance et la pluie prévue. '}${t.officiel === false ? 'Estimation d’après le règlement et la mesure ; aucun état officiel quotidien n’est publié.' : 'Seul l’affichage officiel du jour fait foi.'}</small></div></div>
     </div>
-    <div class="card"><h3>Débit sur 7 jours</h3>${spark(t)}</div>
+    <div class="card"><h3>${esc(t.grandeur || 'Débit')} sur 7 jours</h3>${spark(t)}</div>
     <div class="card"><h3>Le parcours</h3>
       <div class="stats">
         ${t.longueurKm ? `<div class="stat"><span class="l">Longueur approx.</span><span class="v">${fmt(t.longueurKm)} km</span></div>` : ''}
         ${t.difficulte ? `<div class="stat"><span class="l">Difficulté</span><span class="v">${esc(t.difficulte)}</span></div>` : ''}
-        <div class="stat"><span class="l">Période autorisée</span><span class="v" style="color:${t.saison ? 'var(--ok)' : 'var(--danger)'}" title="${t.saison ? 'Nous sommes dans la période autorisée' : 'Hors de la période autorisée'}">${t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année'}</span></div>
-        <div class="stat"><span class="l">Débits autorisés</span><span class="v">${fmt(t.min)} – ${fmt(t.max)} m³/s</span></div>
+        <div class="stat"><span class="l">Période autorisée</span><span class="v" style="color:${t.saison ? 'var(--ok)' : 'var(--danger)'}" title="${t.saison ? 'Nous sommes dans la période autorisée' : 'Hors de la période autorisée'}">${t.saisonsTexte || (t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année')}</span></div>
+        ${t.min != null ? `<div class="stat"><span class="l">${t.unite === 'cm' || t.unite === 'm' ? 'Seuil à l’échelle' : 'Débits autorisés'}</span><span class="v">${t.max != null ? fmt(t.min) + ' – ' + fmt(t.max) : 'min. ' + fmt(t.min)} ${unit(t)}</span></div>` : ''}
         ${drop != null && drop > 0 ? `<div class="stat"><span class="l">Dénivelé</span><span class="v">−${drop} m</span></div>` : ''}
       </div>
       ${cap != null ? `<div class="flow"><svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate(${cap}deg)"><circle cx="13" cy="13" r="12" fill="none" stroke="#33404b"/><path d="M13 5v15M8 10l5-5 5 5" fill="none" stroke="#49b6c4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>La rivière coule vers ${(c => /^[eo]/.test(c) ? 'l’' + c : 'le ' + c)(COMPASS[Math.round(cap / 45) % 8])}. Les flèches sur la carte montrent le sens du courant.</span></div>` : ''}
@@ -527,9 +553,10 @@ function openFiche(id, push = true){
       ${t.aires.length ? t.aires.map((a, i) => `<div class="aire"><span class="t" title="${typLong[a.type] || ''}">${a.type === 'NA' ? '✕' : kayakSvg(a.type, 22, flowBearingAt(t, a.lat, a.lon) - map.getBearing()).replace('<svg ', `<svg data-rot="${flowBearingAt(t, a.lat, a.lon)}" `)}</span><div class="n" data-i="${i}">${esc(a.nom)}<small>${esc(typLong[a.type] || '')}${a.info ? ' · ' + esc(a.info) : ''}</small></div>${a.type !== 'NA' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lon}" target="_blank" rel="noopener">Itinéraire</a>` : ''}</div>`).join('') : '<p class="meta">Aucune aire répertoriée.</p>'}
       <p class="meta" style="margin:8px 0 0">On n’embarque et ne débarque que sur les aires désignées.</p>
     </div>
-    ${t.description ? `<div class="card"><h3>Description</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">Lire tout</button></div>` : ''}
+    ${t.officiel === false ? `<div class="card"><h3>Règlement</h3><div class="desc">${esc(t.regle)}</div><p class="meta" style="margin:8px 0 0">État estimé par l’app d’après ce règlement et la mesure ci-dessus${t.traceApprox ? ' ; tracé approximatif' : ''}. Vérifiez les interdictions temporaires.</p>${t.source ? `<a class="link" href="${esc(t.source)}" target="_blank" rel="noopener">Source du règlement</a>` : ''}</div>` : ''}
+    ${t.description && t.officiel !== false ? `<div class="card"><h3>Description</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">Lire tout</button></div>` : ''}
     ${DATA.alertes ? `<div class="card"><h3>Alertes</h3><p style="margin:0 0 10px;font-size:13px">Recevez une notification quand ${favs.size ? 'une rivière suivie' : 'un parcours'} ouvre ou ferme : installez l’app gratuite ntfy, puis abonnez-vous.</p><a class="btn" href="${esc(DATA.alertes.url)}" target="_blank" rel="noopener">S’abonner aux alertes</a></div>` : ''}
-    <a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">Voir sur Infokayak (site officiel)</a>`;
+    ${t.officiel === false ? '' : '<a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">Voir sur Infokayak (site officiel)</a>'}`;
   $('#view-list').hidden = true; v.hidden = false; $('#panel').scrollTop = 0;
   document.body.classList.remove('panel-small');
   $('#close').onclick = () => history.state?.fiche ? history.back() : closeFiche();
@@ -584,9 +611,9 @@ async function load(){
   $('#maj').innerHTML = 'Mis à jour<br>' + d.toLocaleString('fr-BE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
   const notes = [];
   if (age > 6) notes.push(`Données vieilles de ${Math.round(age)} h : la mise à jour automatique semble arrêtée.`);
-  if (DATA.erreurs?.length) notes.push('Certaines sources n’ont pas répondu (' + DATA.erreurs.map(e => e.split(':')[0]).join(', ') + ') : informations partielles.');
+  if (DATA.erreurs?.length) notes.push('Certaines sources n’ont pas répondu (' + [...new Set(DATA.erreurs.map(e => e.split(':')[0]))].join(', ') + ') : informations partielles.');
   $('#notices').innerHTML = notes.map(n => `<div class="notice">${esc(n)}</div>`).join('');
-  const ready = () => { addData(); render(); const h = decodeURIComponent(location.hash.slice(1)); if (h) openFiche(h, false); };
+  const ready = () => { addData(); render(); const h = decodeURIComponent(location.hash.slice(1)); if (h) openFiche(h, false); else fitShown(); };
   // n'attend pas les tuiles (un fond ou le relief indisponible ne doit pas bloquer les rivières)
   let done = false; const go = () => { if (!done && map.isStyleLoaded()) { done = true; ready(); } };
   go(); if (!done) { map.once('style.load', go); map.once('load', go); const iv = setInterval(() => { go(); if (done) clearInterval(iv); }, 200); }

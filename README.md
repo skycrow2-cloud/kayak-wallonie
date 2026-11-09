@@ -18,6 +18,13 @@ Le site est hébergé gratuitement par GitHub. Toutes les heures, une tâche aut
 
 La « prévision » est une estimation maison (débit, tendance, pluie prévue). Seul l'affichage officiel d'Infokayak fait foi.
 
+## Hors Wallonie
+
+Parcours ajoutés en Flandre/Bruxelles, au Luxembourg, en Allemagne (Rur) et en France (Semoy, Meuse) : voir `scripts/routes-extra.mjs`.
+Aucun de ces gestionnaires ne publie un état ouvert/fermé quotidien comme Infokayak : l'app **estime** l'état d'après le règlement
+(périodes, seuil d'échelle) et la mesure en direct (waterinfo.be, heichwaasser.lu, Hub'Eau). Ces parcours sont tracés en pointillé.
+Tracés : OpenStreetMap (Overpass), rafraîchis chaque semaine.
+
 ## Mise en route (10 minutes)
 
 1. **Créer le dépôt** : sur github.com, cliquez sur *New repository*, nommez-le par exemple `kayak-wallonie`, laissez-le **Public** (GitHub Pages est gratuit pour les dépôts publics) et validez.
