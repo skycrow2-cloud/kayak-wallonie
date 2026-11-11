@@ -270,8 +270,10 @@ body{-webkit-tap-highlight-color:transparent}
   .filters > *{flex:none}
   /* commandes de carte : colonne à droite au-dessus du tiroir, inclinaison en haut à gauche (comme GPX 3D) */
   .ctl-stack{top:calc(10px + env(safe-area-inset-top))}
-  #pitch-control{right:calc(18px + var(--ctl));bottom:calc(var(--sheet-px, 46dvh) + 10px);height:110px;transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
-  #pitch-slider{width:88px}
+  /* au-dessus du « i » ; hauteur réduite si la colonne de boutons est proche */
+  #pitch-control{--pitch-h:clamp(64px, calc(100dvh - var(--sheet-px, 46dvh) - 48px - 6 * var(--ctl) - 50px - env(safe-area-inset-top)), 110px);
+    right:10px;bottom:calc(var(--sheet-px, 46dvh) + 40px);height:var(--pitch-h);transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
+  #pitch-slider{width:calc(var(--pitch-h) - 22px)}
   .maplibregl-ctrl-bottom-left{left:10px;bottom:calc(var(--sheet-px, 46dvh) + 10px);transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
   body.sheet-dragging #pitch-control,body.sheet-dragging #info,body.sheet-dragging .maplibregl-ctrl-bottom-left{transition:none}
   body.sheet-full #pitch-control,body.sheet-full .maplibregl-ctrl-bottom-left{opacity:0;pointer-events:none}
