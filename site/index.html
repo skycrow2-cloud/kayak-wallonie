@@ -887,8 +887,10 @@ function setSheet(st, px){
     else { ['--sheet-h','--sheet-px'].forEach(v => document.documentElement.style.removeProperty(v)); document.body.classList.remove('sheet-peek','sheet-half','sheet-full','sheet-dragging'); }
   };
   // rotation : sur téléphone, « resize » peut arriver avant que les media queries soient à jour, on revérifie après coup
-  const later = () => { onResize(); setTimeout(onResize, 150); setTimeout(onResize, 500); };
-  addEventListener('resize', onResize); addEventListener('orientationchange', later);
+  // Safari iOS ne redessine pas toujours les éléments fixes en verre après une rotation : on force un nouveau rendu de la flèche
+  const repaint = () => { const t = $('#panel-toggle'); t.style.display = 'none'; void t.offsetWidth; t.style.display = ''; };
+  const later = () => { onResize(); setTimeout(() => { onResize(); repaint(); }, 150); setTimeout(() => { onResize(); repaint(); }, 500); };
+  addEventListener('resize', () => { onResize(); clearTimeout(window._rz); window._rz = setTimeout(repaint, 300); }); addEventListener('orientationchange', later);
   screen.orientation?.addEventListener?.('change', later);
   matchMedia('(max-width:760px) and (min-height:501px)').addEventListener?.('change', later);
   onResize();
