@@ -199,10 +199,18 @@ svg.spark{width:100%;height:70px;display:block;overflow:visible}
 .menu-pop hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 #pitch-control{position:fixed;z-index:2;right:10px;bottom:58px;width:var(--ctl);height:130px;border-radius:999px;display:flex;align-items:center;justify-content:center}
 #pitch-slider{width:110px;height:22px;transform:rotate(-90deg);accent-color:var(--accent);cursor:pointer}
-.attrib-pop{position:fixed;z-index:3;right:calc(10px + var(--ctl) + 8px);bottom:10px;max-width:min(420px,calc(100vw - 80px));padding:8px 12px;border-radius:10px;font-size:11px;line-height:1.5;color:var(--text-muted);
+.attrib-pop{position:fixed;z-index:3;right:calc(10px + 22px + 8px);bottom:10px;max-width:min(420px,calc(100vw - 80px));padding:8px 12px;border-radius:10px;font-size:11px;line-height:1.5;color:var(--text-muted);
   background:var(--win-bg);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .attrib-pop a{color:var(--text-muted)}
-#info{position:fixed;z-index:2;right:10px;bottom:10px}
+#info{position:fixed;z-index:2;right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));width:22px;height:22px;border:0;padding:0;border-radius:50%;
+  background:rgba(0,0,0,.78);color:#fff;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+#info svg{width:14px;height:14px}
+/* échelle graphique (comme GPX 3D) */
+.maplibregl-ctrl-scale{background:var(--glass);border-color:var(--accent);border-width:2px;color:var(--accent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  font-size:11px;font-weight:600;padding:1px 6px;box-shadow:var(--glass-shadow)}
+.maplibregl-ctrl-bottom-left{left:calc(var(--panel-w) + 10px);bottom:calc(10px + env(safe-area-inset-bottom));transition:left .22s ease}
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl{margin:0}
+body.panel-hidden .maplibregl-ctrl-bottom-left{left:calc(10px + env(safe-area-inset-left))}
 .legend{position:fixed;z-index:3;top:calc(10px + env(safe-area-inset-top));right:calc(10px + var(--ctl) + 8px);width:250px;max-height:calc(100dvh - 20px);overflow:auto;padding:10px 14px 12px;border-radius:12px;font-size:12px;color:var(--text);
   background:var(--win-bg);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .legend h4{margin:8px 0 6px;font-size:11.5px;font-weight:500;color:var(--accent);letter-spacing:.02em}
@@ -262,10 +270,13 @@ body{-webkit-tap-highlight-color:transparent}
   .filters > *{flex:none}
   /* commandes de carte : colonne à droite au-dessus du tiroir, inclinaison en haut à gauche (comme GPX 3D) */
   .ctl-stack{top:calc(10px + env(safe-area-inset-top))}
-  #pitch-control{left:10px;right:auto;top:calc(10px + env(safe-area-inset-top));bottom:auto;height:120px}
-  #pitch-slider{width:96px}
+  #pitch-control{right:calc(18px + var(--ctl));bottom:calc(var(--sheet-px, 46dvh) + 10px);height:110px;transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
+  #pitch-slider{width:88px}
+  .maplibregl-ctrl-bottom-left{left:10px;bottom:calc(var(--sheet-px, 46dvh) + 10px);transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
+  body.sheet-dragging #pitch-control,body.sheet-dragging #info,body.sheet-dragging .maplibregl-ctrl-bottom-left{transition:none}
+  body.sheet-full #pitch-control,body.sheet-full .maplibregl-ctrl-bottom-left{opacity:0;pointer-events:none}
   #info{bottom:calc(var(--sheet-px, 46dvh) + 10px);transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
-  .attrib-pop{bottom:calc(var(--sheet-px, 46dvh) + 10px);right:calc(10px + var(--ctl) + 8px)}
+  .attrib-pop{bottom:calc(var(--sheet-px, 46dvh) + 10px);right:calc(10px + 22px + 8px)}
   body.sheet-full #info, body.sheet-full .ctl-stack{opacity:0;pointer-events:none}
   .legend{width:min(250px,calc(100vw - 80px));max-height:calc(100dvh - var(--sheet-px, 46dvh) - 30px)}
   .fiche h2{font-size:20px}
@@ -277,9 +288,8 @@ body{-webkit-tap-highlight-color:transparent}
   #panel{padding:8px 12px calc(8px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));gap:8px}
   .brand h1 small,.brand .maj{display:none}
   .brand img{width:34px;height:34px;margin:-4px}
-  /* barre d'assiette verticale en bas à droite, à côté du bouton « i » */
-  #pitch-control{right:calc(18px + var(--ctl) + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));height:110px}
-  #pitch-slider{width:88px}
+  #pitch-control{height:104px;right:calc(20px + var(--ctl))}
+  #pitch-slider{width:84px}
   .ctl-stack{gap:6px}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .filters > *{flex:none}
@@ -335,7 +345,7 @@ body{-webkit-tap-highlight-color:transparent}
   <button class="pill" id="legend-btn" aria-label="Légende" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></button>
   <button class="pill" id="locate" aria-label="Me localiser"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r="8"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg></button>
 </div>
-<button class="pill" id="info" aria-label="Sources et crédits" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
+<button id="info" aria-label="Sources et crédits" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 11v7M12 6v.01"/></svg></button>
 <div class="attrib-pop" id="attrib" hidden></div>
 <div id="help" hidden><div class="help-box" role="dialog" aria-modal="true" aria-labelledby="help-title">
   <div class="help-head"><h2 id="help-title"></h2><button class="ibtn" id="help-link" aria-label="Copier le lien vers l’aide" title="Copier le lien vers l’aide">🔗</button><button class="ibtn" id="help-close" aria-label="Fermer" title="Fermer (Échap)">×</button></div>
@@ -544,6 +554,7 @@ const map = new maplibregl.Map({
   center:[5.35, 50.05], zoom:7.6, maxPitch:80, attributionControl:false,
 });
 map.getCanvas().addEventListener('contextmenu', e => e.preventDefault());
+map.addControl(new maplibregl.ScaleControl({ maxWidth:110, unit:'metric' }), 'bottom-left');
 const isSheet = () => matchMedia('(max-width:760px) and (min-height:501px)').matches;
 const panelPad = () => isSheet()
   ? { top:60, left:30, right:62, bottom: Math.min(sheetPx() + 20, innerHeight * .6) }
