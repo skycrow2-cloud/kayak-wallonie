@@ -245,7 +245,12 @@ body{-webkit-tap-highlight-color:transparent}
   #sheet-grab{display:flex;position:sticky;top:0;z-index:3;margin:0 -14px 2px;height:26px;align-items:center;justify-content:center;cursor:grab;
     background:linear-gradient(var(--grab-bg),transparent);touch-action:none}
   #sheet-grab::before{content:'';width:42px;height:5px;border-radius:3px;background:var(--grab)}
-  #panel-toggle{display:none}
+  /* flèche de rabat : languette centrée au-dessus du tiroir */
+  #panel-toggle{top:auto;left:50%;bottom:min(var(--sheet-px, 46dvh), calc(100dvh - 22px - env(safe-area-inset-top)));transform:translateX(-50%);width:56px;height:20px;
+    border:1px solid var(--glass-border);border-bottom:0;border-radius:10px 10px 0 0;transition:bottom .25s cubic-bezier(.2,.8,.2,1)}
+  body.sheet-dragging #panel-toggle{transition:none}
+  #panel-toggle svg,body.panel-hidden #panel-toggle svg{transform:rotate(-90deg)}
+  body.sheet-peek #panel-toggle svg{transform:rotate(90deg)}
   .brand img{width:38px;height:38px;margin:-2px -2px -2px -4px}
   .brand h1{font-size:15px}
   .brand h1 small{display:none}
@@ -718,7 +723,7 @@ document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () =
 }));
 $('#region').value = store.get('region', '');
 $('#region').onchange = e => { store.set('region', e.target.value); render(); fitShown(); };
-$('#panel-toggle').onclick = () => document.body.classList.toggle('panel-hidden');
+$('#panel-toggle').onclick = () => { if (isSheet()) setSheet(sheetState === 'peek' ? 'half' : 'peek'); else document.body.classList.toggle('panel-hidden'); };
 if (!isSheet() && store.get('panelHidden', false)) document.body.classList.add('panel-hidden');
 new MutationObserver(() => store.set('panelHidden', document.body.classList.contains('panel-hidden'))).observe(document.body, { attributes:true, attributeFilter:['class'] });
 
