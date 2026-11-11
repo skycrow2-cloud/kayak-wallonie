@@ -1,0 +1,26 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'be.misealeau.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'be.misealeau.app'
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName '1.' + (System.getenv('GITHUB_RUN_NUMBER') ?: '0')
+    }
+    signingConfigs {
+        release {
+            // clé de signature du dépôt : garder la même pour que les mises à jour s'installent par-dessus
+            storeFile file('../mise-a-leau.jks')
+            storePassword System.getenv('KEYSTORE_PASSWORD') ?: 'misealeau'
+            keyAlias 'misealeau'
+            keyPassword System.getenv('KEYSTORE_PASSWORD') ?: 'misealeau'
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

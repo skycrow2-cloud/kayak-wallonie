@@ -1,0 +1,47 @@
+name: APK Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['android/**', '.github/workflows/android.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Construire l'APK
+        run: gradle -p android assembleRelease --no-daemon
+
+      - name: Publier dans les Releases (lien fixe)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk mise-a-leau.apk
+          gh release delete apk --yes --cleanup-tag || true
+          gh release create apk mise-a-leau.apk \
+            --title "Mise à l'eau pour Android (version 1.${{ github.run_number }})" \
+            --notes "Application Android : ouvre le site Mise à l'eau en plein écran. Télécharger mise-a-leau.apk puis l'ouvrir sur le téléphone (autoriser l'installation depuis le navigateur)."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mise-a-leau-apk
+          path: mise-a-leau.apk
