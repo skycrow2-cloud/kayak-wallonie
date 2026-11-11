@@ -290,7 +290,9 @@ body{-webkit-tap-highlight-color:transparent}
   #panel{padding:8px 12px calc(8px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));gap:8px}
   .brand h1 small,.brand .maj{display:none}
   .brand img{width:34px;height:34px;margin:-4px}
-  #pitch-control{height:104px;right:calc(20px + var(--ctl))}
+  /* barre d'assiette en haut à gauche de la carte, à droite du panneau */
+  #pitch-control{height:104px;left:calc(var(--panel-w) + 10px);right:auto;top:calc(10px + env(safe-area-inset-top));bottom:auto;transition:left .22s ease}
+  body.panel-hidden #pitch-control{left:calc(10px + env(safe-area-inset-left))}
   #pitch-slider{width:84px}
   .ctl-stack{gap:6px}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
