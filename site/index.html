@@ -277,8 +277,9 @@ body{-webkit-tap-highlight-color:transparent}
   #panel{padding:8px 12px calc(8px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));gap:8px}
   .brand h1 small,.brand .maj{display:none}
   .brand img{width:34px;height:34px;margin:-4px}
-  #pitch-control{height:104px;right:calc(20px + var(--ctl))}
-  #pitch-slider{width:84px}
+  /* barre d'assiette horizontale en bas à droite, à côté du bouton « i » */
+  #pitch-control{right:calc(18px + var(--ctl) + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));width:120px;height:var(--ctl)}
+  #pitch-slider{width:96px;transform:none}
   .ctl-stack{gap:6px}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .filters > *{flex:none}
