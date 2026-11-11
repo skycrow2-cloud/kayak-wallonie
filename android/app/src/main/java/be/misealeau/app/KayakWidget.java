@@ -30,10 +30,10 @@ import java.util.TimeZone;
 public class KayakWidget extends AppWidgetProvider {
     static final String URL_JSON = "https://skycrow2-cloud.github.io/kayak-wallonie/widget.json";
     static final String PREFS = "kayak";
-    private static final int[] ROW = {R.id.row0, R.id.row1, R.id.row2, R.id.row3, R.id.row4, R.id.row5, R.id.row6, R.id.row7};
-    private static final int[] DOT = {R.id.dot0, R.id.dot1, R.id.dot2, R.id.dot3, R.id.dot4, R.id.dot5, R.id.dot6, R.id.dot7};
-    private static final int[] NAME = {R.id.name0, R.id.name1, R.id.name2, R.id.name3, R.id.name4, R.id.name5, R.id.name6, R.id.name7};
-    private static final int[] STATE = {R.id.state0, R.id.state1, R.id.state2, R.id.state3, R.id.state4, R.id.state5, R.id.state6, R.id.state7};
+    private static final int[] ROW = {R.id.row0, R.id.row1, R.id.row2, R.id.row3, R.id.row4, R.id.row5, R.id.row6, R.id.row7, R.id.row8, R.id.row9};
+    private static final int[] DOT = {R.id.dot0, R.id.dot1, R.id.dot2, R.id.dot3, R.id.dot4, R.id.dot5, R.id.dot6, R.id.dot7, R.id.dot8, R.id.dot9};
+    private static final int[] NAME = {R.id.name0, R.id.name1, R.id.name2, R.id.name3, R.id.name4, R.id.name5, R.id.name6, R.id.name7, R.id.name8, R.id.name9};
+    private static final int[] STATE = {R.id.state0, R.id.state1, R.id.state2, R.id.state3, R.id.state4, R.id.state5, R.id.state6, R.id.state7, R.id.state8, R.id.state9};
 
     @Override
     public void onUpdate(Context ctx, AppWidgetManager mgr, int[] ids) { draw(ctx); refresh(ctx, goAsync()); }
