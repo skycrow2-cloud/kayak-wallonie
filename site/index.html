@@ -8,6 +8,7 @@
 <meta name="application-name" content="Mise à l’eau">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="theme-color" content="#0e1217">
+<script>try{var t=JSON.parse(localStorage.getItem('theme'));if(t==='light'||t==='grey')document.documentElement.setAttribute('data-theme',t);var l=JSON.parse(localStorage.getItem('lang'))||(/^fr/i.test(navigator.language||'fr')?'fr':'en');if(l==='en')document.documentElement.lang='en';}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="kayak.svg?v=45" type="image/svg+xml">
 <link rel="icon" href="kayak-32.png?v=45" type="image/png" sizes="32x32">
@@ -27,7 +28,61 @@
   --radius:8px; --chart-bg:#1b222a; --chart-grid:#33404b;
   --font-ui:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --panel-w:380px;
+  --win-bg:rgba(20,25,34,.6); --line:rgba(255,255,255,.1); --line-2:rgba(255,255,255,.06); --tint:rgba(255,255,255,.04);
+  --chip-bg:rgba(27,34,44,.4); --line-strong:#3a4450; --desc:#d5d1c8; --grab-bg:rgba(20,25,34,.55); --grab:rgba(238,234,225,.35); --info:#a99be0;
 }
+/* thème gris : intermédiaire (repris de The-GPX-Box) */
+:root[data-theme="grey"]{
+  --bg:#3b414a; --panel-solid:rgba(64,71,81,.66); --panel-border:#626b77; --field-bg:#4f5761;
+  --text:#f3f0ea; --text-muted:#bcc3cd; --muted-2:#8d96a2; --accent-2:#5cc4d2;
+  --glass:rgba(72,80,92,.5); --glass-hover:rgba(72,80,92,.68); --glass-strong:rgba(66,74,85,.82);
+  --win-bg:rgba(64,71,81,.7); --line:rgba(255,255,255,.14); --line-2:rgba(255,255,255,.09); --tint:rgba(255,255,255,.06);
+  --chip-bg:rgba(72,80,92,.45); --line-strong:#77818d; --desc:#e6e2da; --grab-bg:rgba(64,71,81,.55); --info:#bdb2ee;
+}
+/* thème clair (calqué sur GPX 3D / The-GPX-Box) */
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eeebe4; --panel-solid:rgba(250,249,246,.78); --panel-border:#d8d2c6; --field-bg:#ffffff;
+  --text:#1f2329; --text-muted:#5b626d; --muted-2:#8a919b;
+  --accent:#ff8a00; --accent-soft:rgba(255,138,0,.14); --accent-2:#1d8796; --accent-2-soft:rgba(29,135,150,.14);
+  --warn:#b8890a; --danger:#c0463b; --ok:#23915f; --info:#6d5bc4;
+  --glass:rgba(255,255,255,.42); --glass-hover:rgba(255,255,255,.62); --glass-strong:rgba(255,255,255,.82);
+  --glass-border:rgba(255,138,0,.5); --glass-shadow:0 4px 14px rgba(40,30,10,.16);
+  --win-bg:rgba(250,249,246,.82); --line:rgba(0,0,0,.1); --line-2:rgba(0,0,0,.06); --tint:rgba(0,0,0,.035);
+  --chip-bg:rgba(255,255,255,.55); --line-strong:#b9b2a3; --desc:#3a3f46; --grab-bg:rgba(250,249,246,.65); --grab:rgba(31,35,41,.3);
+}
+:root[data-theme="light"] .menu-pop,:root[data-theme="light"] .legend,:root[data-theme="light"] .attrib-pop{box-shadow:0 6px 20px rgba(40,30,10,.18)}
+:root[data-theme="light"] #panel{box-shadow:0 0 24px rgba(40,30,10,.12)}
+/* réglages et aide */
+.brand .tools{display:flex;gap:6px;margin-left:6px;position:relative}
+.ibtn{width:30px;height:30px;flex:none;border-radius:50%;border:1px solid var(--line);background:none;color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-size:14px;font-weight:600}
+.ibtn:hover,.ibtn[aria-expanded=true]{border-color:var(--glass-border);background:var(--accent-soft)}
+.set-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:6;width:224px;padding:10px 12px;border-radius:12px;background:var(--win-bg);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);display:flex;flex-direction:column;gap:6px}
+.set-pop h4{margin:4px 0 0;font-size:11px;font-weight:500;color:var(--accent);letter-spacing:.03em}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{flex:1;border:0;background:none;padding:5px 4px;font-size:12px;cursor:pointer;color:var(--text-muted)}
+.seg button + button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{color:var(--accent);background:var(--accent-soft)}
+.set-pop .link{text-align:left;margin-top:4px;font-size:12.5px}
+#help{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,10,14,.45)}
+:root[data-theme="light"] #help{background:rgba(40,30,10,.18)}
+.help-box{width:min(620px,100%);max-height:min(86dvh,860px);display:flex;flex-direction:column;border-radius:14px;background:var(--win-bg);-webkit-backdrop-filter:blur(16px) saturate(1.2);backdrop-filter:blur(16px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.help-head{flex:none;display:flex;align-items:center;gap:8px;padding:12px 14px 10px 18px;border-bottom:1px solid var(--line-2)}
+.help-head h2{flex:1;margin:0;font-size:17px;font-weight:400;color:var(--accent)}
+.help-nav{flex:none;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:8px 14px;border-bottom:1px solid var(--line-2)}
+.help-nav::-webkit-scrollbar{display:none}
+.help-nav a{flex:none;font-size:12px;line-height:1.4;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--text);text-decoration:none}
+.help-nav a:hover{border-color:var(--glass-border);color:var(--accent)}
+.help-body{overflow-y:auto;padding:4px 18px 18px;font-size:13px;line-height:1.55}
+.help-body h3{font-size:13px;font-weight:500;color:var(--accent);margin:16px 0 6px;letter-spacing:.02em}
+.help-body p{margin:0 0 8px}
+.help-body ul{margin:0 0 8px;padding-left:18px}
+.help-body li{margin:2px 0}
+.help-body .lg{display:flex;align-items:center;gap:10px;padding:2px 0}
+.help-body .lg i{flex:none;width:22px;height:3px;border-radius:2px}
+.help-body .note{font-size:12px;color:var(--text-muted);border-left:2px solid var(--glass-border);padding-left:10px}
+kbd{font:inherit;font-size:11px;padding:0 5px;border:1px solid var(--line);border-radius:4px}
+@media (max-width:760px){#help{padding:0;align-items:flex-end}.help-box{max-height:92dvh;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom)}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
@@ -44,32 +99,34 @@ button{font:inherit;color:inherit}
 .brand img{width:46px;height:46px;margin:-4px -2px -4px -6px}
 .brand{margin-bottom:4px}
 .brand h1{font-size:16px;font-weight:500;margin:0;letter-spacing:.02em;color:var(--accent)}
-.brand .maj{margin-left:auto;font-size:11.5px;color:var(--text-muted);font-variant-numeric:tabular-nums;text-align:right}
+.brand .maj{margin-left:auto;font-size:11.5px;color:var(--text-muted);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.brand h1{line-height:1.15}
+.brand h1 small{display:block;margin-top:1px}
 .filters{display:flex;gap:4px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;align-items:center}
 .filters::-webkit-scrollbar{display:none}
 .filters > *{flex:none}
-.chip{font-size:12px;font-weight:500;padding:5px 9px;line-height:1.3;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(27,34,44,.4);cursor:pointer}
-.chip:hover{border-color:#3a4450}
+.chip{font-size:12px;font-weight:500;padding:5px 9px;line-height:1.3;border-radius:999px;border:1px solid var(--line);background:var(--chip-bg);cursor:pointer}
+.chip:hover{border-color:var(--line-strong)}
 .chip:is(select){field-sizing:content;appearance:none;-webkit-appearance:none;padding-right:22px;color:var(--text);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8a33d' stroke-width='2'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;background-size:14px}
-.chip option{background:#1b222a;color:var(--text)}
+.chip option{background:var(--field-bg);color:var(--text)}
 .chip[aria-pressed=true]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .summary{font-size:14px;font-weight:500;margin:2px 0 0}
 .summary b{color:var(--accent);font-variant-numeric:tabular-nums}
 .notice{padding:8px 10px;border-radius:var(--radius);border:1px solid rgba(242,201,76,.4);background:rgba(242,201,76,.1);font-size:12.5px;line-height:1.45}
 ul.list{list-style:none;margin:0 -8px;padding:0}
 .row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 8px;border-radius:var(--radius);cursor:pointer;align-items:center}
-.row:hover,.row.hl{background:rgba(255,255,255,.04)}
+.row:hover,.row.hl{background:var(--tint)}
 .row + .row{border-top:1px solid var(--panel-border)}
 .row .name{font-size:14.5px;font-weight:500;color:var(--accent);letter-spacing:.01em}
 .row .sub{grid-column:1/-1;font-size:12.5px;color:var(--text-muted);line-height:1.4}
 .row .gauge{grid-column:1/-1;margin-top:4px}
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
 .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
-.s-ouvert{color:var(--ok)} .s-ferme{color:var(--text-muted)} .s-risque{color:var(--warn)} .s-possible{color:var(--accent-2)} .s-saison{color:var(--muted-2)} .s-info{color:#a99be0}
+.s-ouvert{color:var(--ok)} .s-ferme{color:var(--text-muted)} .s-risque{color:var(--warn)} .s-possible{color:var(--accent-2)} .s-saison{color:var(--muted-2)} .s-info{color:var(--info)}
 
 /* jauge : bande turquoise = débits autorisés, curseur orange = débit actuel */
 .gauge{position:relative;height:26px}
-.gauge .track{position:absolute;left:0;right:0;top:10px;height:4px;border-radius:2px;background:rgba(255,255,255,.1)}
+.gauge .track{position:absolute;left:0;right:0;top:10px;height:4px;border-radius:2px;background:var(--line)}
 .gauge .band{position:absolute;top:10px;height:4px;background:var(--accent-2);opacity:.75;border-radius:2px}
 .gauge .mark{position:absolute;top:4px;width:2px;height:16px;margin-left:-1px;background:var(--accent);border-radius:2px;box-shadow:0 0 0 1.5px rgba(14,18,23,.8)}
 .gauge .lab{position:absolute;top:17px;font-size:10.5px;color:var(--text-muted);transform:translateX(-50%);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -87,7 +144,7 @@ ul.list{list-style:none;margin:0 -8px;padding:0}
 .status{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
 .status .why{font-size:12.5px;color:var(--text-muted)}
 .fiche .where{font-size:12.5px;line-height:1.45;color:var(--text-muted);margin:0;max-width:34ch}
-.card{border:0;background:rgba(255,255,255,.035);border-radius:12px;padding:10px 13px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.card{border:0;background:var(--tint);border-radius:12px;padding:10px 13px;box-shadow:inset 0 0 0 1px var(--tint)}
 .card h3{font-size:11px;font-weight:500;color:var(--accent);opacity:.85;margin:0 0 7px;letter-spacing:.03em}
 .big-q{margin-top:2px!important;font-size:23px;font-weight:300;letter-spacing:-.01em;color:var(--accent);font-variant-numeric:tabular-nums;margin:6px 0 0}
 .big-q small{font-size:12px;color:var(--text-muted);font-weight:500}
@@ -98,9 +155,9 @@ ul.list{list-style:none;margin:0 -8px;padding:0}
 .stat .v{font-size:13.5px;font-weight:400;color:var(--text);font-variant-numeric:tabular-nums}
 .days{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
 .day{padding:2px 2px 0}
-.day + .day{border-left:1px solid rgba(255,255,255,.06)}
+.day + .day{border-left:1px solid var(--line-2)}
 .day .d{font-size:10.5px;color:var(--text-muted)} .day .i{height:26px;display:flex;align-items:center;justify-content:center;color:var(--text)} .day .r{font-size:11.5px;font-weight:400;color:var(--accent-2);font-variant-numeric:tabular-nums}
-.outlook{margin-top:9px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:9px;align-items:flex-start;font-size:12.5px}
+.outlook{margin-top:9px;padding-top:8px;border-top:1px solid var(--line-2);display:flex;gap:9px;align-items:flex-start;font-size:12.5px}
 .outlook .dot{flex:none;width:7px;height:7px;border-radius:50%;margin-top:6px;background:var(--accent-2)}
 .outlook.o-ouvert .dot{background:var(--ok)} .outlook.o-ferme .dot,.outlook.o-inconnu .dot{background:var(--text-muted)} .outlook.o-risque .dot{background:var(--warn)}
 .outlook b{font-weight:500}
@@ -109,16 +166,16 @@ ul.list{list-style:none;margin:0 -8px;padding:0}
 .flow svg{flex:none}
 .aire{display:flex;gap:9px;align-items:flex-start;padding:6px 0}
 .aire + .aire{border-top:1px solid var(--panel-border)}
-.aire .t{flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:50%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--accent-2)}
+.aire .t{flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11px;border-radius:50%;background:var(--tint);border:1px solid var(--line);color:var(--accent-2)}
 .aire .n{flex:1;font-size:12.5px;cursor:pointer} .aire .n small{display:block;color:var(--text-muted);font-size:11.5px;white-space:pre-line}
 .aire a{flex:none;font-size:12.5px;color:var(--accent);font-weight:600;text-decoration:none}
-.desc{white-space:pre-line;font-size:12.5px;line-height:1.55;color:#d5d1c8}
+.desc{white-space:pre-line;font-size:12.5px;line-height:1.55;color:var(--desc)}
 .desc.short{max-height:8.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 55%,transparent)}
 .link{color:var(--accent);font-weight:500;background:none;border:0;padding:0;cursor:pointer;font-size:13px;text-decoration:none}
 svg.spark{width:100%;height:70px;display:block;overflow:visible}
 .btn{display:inline-block;font-size:12.5px;font-weight:500;border-radius:999px;padding:7px 14px;text-decoration:none;cursor:pointer;background:var(--accent-soft);color:var(--accent);border:1px solid var(--glass-border)}
-.btn:hover{background:rgba(232,163,61,.24)}
-.star{flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid rgba(255,255,255,.1);border-radius:50%;font-size:15px;cursor:pointer;color:var(--text-muted);padding:0}
+.btn:hover{background:var(--accent-soft)}
+.star{flex:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--line);border-radius:50%;font-size:15px;cursor:pointer;color:var(--text-muted);padding:0}
 .star:hover{border-color:var(--glass-border);color:var(--accent)}
 .star[aria-pressed=true]{color:var(--accent);border-color:var(--glass-border)}
 
@@ -128,26 +185,26 @@ svg.spark{width:100%;height:70px;display:block;overflow:visible}
 .pill,.zoom-bar{background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .zoom-bar{display:flex;flex-direction:column;width:var(--ctl);border-radius:calc(var(--ctl)/2);overflow:hidden}
 .zoom-btn{width:100%;height:calc(var(--ctl) - 2px);border:0;background:transparent;color:var(--accent);font-size:0;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
-.zoom-btn + .zoom-btn{border-top:1px solid rgba(255,255,255,.12)}
-.zoom-btn:hover{background:rgba(232,163,61,.18)}
+.zoom-btn + .zoom-btn{border-top:1px solid var(--line)}
+.zoom-btn:hover{background:var(--accent-soft)}
 .pill{width:var(--ctl);height:var(--ctl);flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);cursor:pointer;padding:0;font-size:12px;font-weight:700}
 .pill:hover{background:var(--glass-hover)}
 #compass svg{transition:transform .1s linear}
 .menu{position:relative}
-.menu-pop{position:absolute;right:calc(var(--ctl) + 8px);top:0;min-width:170px;padding:6px;border-radius:10px;background:rgba(20,25,34,.6);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:0 6px 20px rgba(0,0,0,.5);display:none}
+.menu-pop{position:absolute;right:calc(var(--ctl) + 8px);top:0;min-width:170px;padding:6px;border-radius:10px;background:var(--win-bg);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:0 6px 20px rgba(0,0,0,.5);display:none}
 .menu-pop.open{display:block}
 .menu-pop button{display:flex;width:100%;align-items:center;gap:8px;padding:7px 8px;border:0;background:none;border-radius:5px;font-size:12.5px;cursor:pointer;text-align:left}
-.menu-pop button:hover{background:rgba(232,163,61,.15)}
+.menu-pop button:hover{background:var(--accent-soft)}
 .menu-pop button[aria-checked=true]{color:var(--accent)}
-.menu-pop hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:4px 0}
+.menu-pop hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 #pitch-control{position:fixed;z-index:2;right:10px;bottom:58px;width:var(--ctl);height:130px;border-radius:999px;display:flex;align-items:center;justify-content:center}
 #pitch-slider{width:110px;height:22px;transform:rotate(-90deg);accent-color:var(--accent);cursor:pointer}
 .attrib-pop{position:fixed;z-index:3;right:calc(10px + var(--ctl) + 8px);bottom:10px;max-width:min(420px,calc(100vw - 80px));padding:8px 12px;border-radius:10px;font-size:11px;line-height:1.5;color:var(--text-muted);
-  background:rgba(20,25,34,.6);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+  background:var(--win-bg);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .attrib-pop a{color:var(--text-muted)}
 #info{position:fixed;z-index:2;right:10px;bottom:10px}
 .legend{position:fixed;z-index:3;top:calc(10px + env(safe-area-inset-top));right:calc(10px + var(--ctl) + 8px);width:250px;max-height:calc(100dvh - 20px);overflow:auto;padding:10px 14px 12px;border-radius:12px;font-size:12px;color:var(--text);
-  background:rgba(20,25,34,.6);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+  background:var(--win-bg);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
 .legend h4{margin:8px 0 6px;font-size:11.5px;font-weight:500;color:var(--accent);letter-spacing:.02em}
 .legend h4:first-child{margin-top:0}
 .legend .lg{display:flex;align-items:center;gap:10px;padding:3px 0;line-height:1.3}
@@ -186,8 +243,8 @@ body{-webkit-tap-highlight-color:transparent}
   body.sheet-dragging #panel{transition:none}
   body.sheet-peek #panel{overflow:hidden}
   #sheet-grab{display:flex;position:sticky;top:0;z-index:3;margin:0 -14px 2px;height:26px;align-items:center;justify-content:center;cursor:grab;
-    background:linear-gradient(rgba(20,25,34,.55),rgba(20,25,34,0));touch-action:none}
-  #sheet-grab::before{content:'';width:42px;height:5px;border-radius:3px;background:rgba(238,234,225,.35)}
+    background:linear-gradient(var(--grab-bg),transparent);touch-action:none}
+  #sheet-grab::before{content:'';width:42px;height:5px;border-radius:3px;background:var(--grab)}
   #panel-toggle{display:none}
   .brand img{width:38px;height:38px;margin:-2px -2px -2px -4px}
   .brand h1{font-size:15px}
@@ -229,13 +286,24 @@ body{-webkit-tap-highlight-color:transparent}
 <button id="panel-toggle" aria-label="Masquer ou afficher le panneau"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
 <aside id="panel" aria-label="Parcours">
   <div id="sheet-grab" role="button" tabindex="0" aria-label="Agrandir ou réduire le panneau"></div>
-  <div class="brand"><img src="kayak.svg?v=45" alt=""><h1>Mise à l’eau <small style="font-size:11px;color:var(--text-muted);font-weight:400">kayak &amp; canoë</small></h1><span class="maj" id="maj">Chargement…</span></div>
+  <div class="brand"><img src="kayak.svg?v=45" alt=""><h1>Mise à l’eau <small style="font-size:11px;color:var(--text-muted);font-weight:400" data-t>kayak &amp; canoë</small></h1><span class="maj" id="maj">Chargement…</span>
+    <div class="tools">
+      <button class="ibtn" id="help-btn" aria-label="Aide" title="Aide">?</button>
+      <button class="ibtn" id="set-btn" aria-label="Réglages" title="Réglages" aria-haspopup="true" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+      <div class="set-pop" id="set-pop" hidden role="dialog" aria-label="Réglages">
+        <h4 data-t>Thème</h4>
+        <div class="seg" id="seg-theme"><button data-v="dark" data-t>Foncé</button><button data-v="grey" data-t>Gris</button><button data-v="light" data-t>Clair</button></div>
+        <h4 data-t>Langue</h4>
+        <div class="seg" id="seg-lang"><button data-v="fr">Français</button><button data-v="en">English</button></div>
+        <button class="link" id="set-help" data-t>Aide et mode d’emploi</button>
+      </div>
+    </div></div>
   <div id="view-list" style="display:flex;flex-direction:column;gap:12px">
     <div class="filters" role="toolbar" aria-label="Filtres">
-      <button class="chip" data-f="ouvert" aria-pressed="false">Ouverts</button>
-      <button class="chip" data-f="fav" aria-pressed="false" aria-label="Mes rivières suivies">★ Suivies</button>
-      <button class="chip" data-f="pres" aria-pressed="false" aria-label="Trier par distance">Près de moi</button>
-      <select class="chip" id="region" aria-label="Région"><option value="">Toutes</option><option value="WAL">Wallonie</option><option value="VL">Flandre-Bxl</option><option value="LU">Luxembourg</option><option value="DE">Allemagne</option><option value="FR">France</option></select>
+      <button class="chip" data-f="ouvert" aria-pressed="false" data-t>Ouverts</button>
+      <button class="chip" data-f="fav" aria-pressed="false" aria-label="Mes rivières suivies" data-t>★ Suivies</button>
+      <button class="chip" data-f="pres" aria-pressed="false" aria-label="Trier par distance" data-t>Près de moi</button>
+      <select class="chip" id="region" aria-label="Région"><option value="" data-t>Toutes</option><option value="WAL" data-t>Wallonie</option><option value="VL" data-t>Flandre-Bxl</option><option value="LU">Luxembourg</option><option value="DE" data-t>Allemagne</option><option value="FR">France</option></select>
     </div>
     <p class="summary" id="summary"></p>
     <div id="notices"></div>
@@ -250,7 +318,7 @@ body{-webkit-tap-highlight-color:transparent}
   <div class="menu">
     <button class="pill" id="basemap-btn" aria-haspopup="true" aria-expanded="false" aria-label="Fond de carte"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
     <div class="menu-pop" id="basemap-pop" role="menu">
-      <button role="menuitemradio" data-bm="aerial">Photo aérienne</button>
+      <button role="menuitemradio" data-bm="aerial" data-t>Photo aérienne</button>
       <button role="menuitemradio" data-bm="osm">OpenStreetMap</button>
       <hr>
       <button role="menuitemcheckbox" id="terrain-btn">Relief 3D</button>
@@ -261,23 +329,28 @@ body{-webkit-tap-highlight-color:transparent}
 </div>
 <button class="pill" id="info" aria-label="Sources et crédits" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
 <div class="attrib-pop" id="attrib" hidden></div>
+<div id="help" hidden><div class="help-box" role="dialog" aria-modal="true" aria-labelledby="help-title">
+  <div class="help-head"><h2 id="help-title"></h2><button class="ibtn" id="help-link" aria-label="Copier le lien vers l’aide" title="Copier le lien vers l’aide">🔗</button><button class="ibtn" id="help-close" aria-label="Fermer" title="Fermer (Échap)">×</button></div>
+  <nav class="help-nav" id="help-nav"></nav>
+  <div class="help-body" id="help-body"></div>
+</div></div>
 <div class="legend" id="legend" hidden role="dialog" aria-label="Légende">
-  <h4>Parcours</h4>
-  <div class="lg"><i class="ln" style="background:#4cc38a"></i>Ouvert aujourd’hui</div>
-  <div class="lg"><i class="ln" style="background:#f2c94c"></i>Ouvert, proche d’une fermeture</div>
-  <div class="lg"><i class="ln" style="background:#49b6c4"></i>Fermé, ouverture possible</div>
-  <div class="lg"><i class="ln" style="background:#8b93a1"></i>Fermé</div>
-  <div class="lg"><i class="ln" style="background:#5d6672"></i>Hors période autorisée</div>
-  <div class="lg"><i class="ln" style="background:#a99be0"></i>À vérifier (aucun seuil publié)</div>
-  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><path d="M1 6h20" stroke="#4cc38a" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Trait pointillé : état estimé (hors Wallonie)</div>
-  <div class="lg"><i class="ln" style="background:#e8a33d"></i>Parcours sélectionné</div>
-  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><path d="M1 6h20" stroke="#4cc38a" stroke-width="2.5"/><path d="M8 2.5l4 3.5-4 3.5" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Sens du courant</div>
-  <h4>Aires</h4>
-  <div class="lg">${K_E}Embarquement (dans le sens du courant)</div>
-  <div class="lg">${K_D}Débarquement (à contre-courant)</div>
-  <div class="lg">${K_ED}Embarquement et débarquement</div>
-  <h4>Jauge de débit</h4>
-  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><rect x="0" y="5" width="22" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/><rect x="6" y="5" width="13" height="3" fill="#49b6c4"/><rect x="9" y="1" width="2" height="11" rx="1" fill="#e8a33d"/></svg>Bande : débits autorisés · trait : débit actuel</div>
+  <h4 data-t>Parcours</h4>
+  <div class="lg"><i class="ln" style="background:#4cc38a"></i><span data-t>Ouvert aujourd’hui</span></div>
+  <div class="lg"><i class="ln" style="background:#f2c94c"></i><span data-t>Ouvert, proche d’une fermeture</span></div>
+  <div class="lg"><i class="ln" style="background:#49b6c4"></i><span data-t>Fermé, ouverture possible</span></div>
+  <div class="lg"><i class="ln" style="background:#8b93a1"></i><span data-t>Fermé</span></div>
+  <div class="lg"><i class="ln" style="background:#5d6672"></i><span data-t>Hors période autorisée</span></div>
+  <div class="lg"><i class="ln" style="background:#a99be0"></i><span data-t>À vérifier (aucun seuil publié)</span></div>
+  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><path d="M1 6h20" stroke="#4cc38a" stroke-width="2.5" stroke-dasharray="4 3"/></svg><span data-t>Trait pointillé : état estimé (hors Wallonie)</span></div>
+  <div class="lg"><i class="ln" style="background:#e8a33d"></i><span data-t>Parcours sélectionné</span></div>
+  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><path d="M1 6h20" stroke="#4cc38a" stroke-width="2.5"/><path d="M8 2.5l4 3.5-4 3.5" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-t>Sens du courant</span></div>
+  <h4 data-t>Aires</h4>
+  <div class="lg">${K_E}<span data-t>Embarquement (dans le sens du courant)</span></div>
+  <div class="lg">${K_D}<span data-t>Débarquement (à contre-courant)</span></div>
+  <div class="lg">${K_ED}<span data-t>Embarquement et débarquement</span></div>
+  <h4 data-t>Jauge de débit</h4>
+  <div class="lg"><svg width="22" height="12" viewBox="0 0 22 12"><rect x="0" y="5" width="22" height="3" rx="1.5" fill="rgba(255,255,255,.15)"/><rect x="6" y="5" width="13" height="3" fill="#49b6c4"/><rect x="9" y="1" width="2" height="11" rx="1" fill="#e8a33d"/></svg><span data-t>Bande : débits autorisés · trait : débit actuel</span></div>
 </div>
 <div id="pitch-control" class="pill" style="border-radius:999px"><input id="pitch-slider" type="range" min="0" max="75" value="0" aria-label="Inclinaison de la vue"></div>
 
@@ -286,56 +359,141 @@ body{-webkit-tap-highlight-color:transparent}
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store = { get(k, d){ try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } }, set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)) } catch {} } };
+// ---------- Langue (FR par défaut, EN) ----------
+let LANG = store.get('lang', null) || (/^fr/i.test(navigator.language || 'fr') ? 'fr' : 'en');
+const LOC = () => LANG === 'en' ? 'en-GB' : 'fr-BE';
+const EN = {
+  'kayak & canoë':'kayak & canoe', 'Chargement…':'Loading…', 'Aide':'Help', 'Réglages':'Settings', 'Thème':'Theme', 'Foncé':'Dark', 'Gris':'Grey', 'Clair':'Light', 'Langue':'Language',
+  'Aide et mode d’emploi':'Help and user guide', 'Ouverts':'Open', '★ Suivies':'★ Followed', 'Près de moi':'Near me', 'Toutes':'All', 'Wallonie':'Wallonia', 'Flandre-Bxl':'Flanders-Bxl',
+  'Allemagne':'Germany', 'Flandre':'Flanders', 'Bruxelles':'Brussels', 'Flandre et Bruxelles':'Flanders and Brussels', 'Photo aérienne':'Aerial photo', 'Relief 3D':'3D terrain',
+  'Mes rivières suivies':'My followed rivers', 'Trier par distance':'Sort by distance', 'Région':'Region', 'Filtres':'Filters', 'Parcours':'Routes', 'Carte des parcours':'Route map',
+  'Masquer ou afficher le panneau':'Hide or show the panel', 'Agrandir ou réduire le panneau':'Expand or collapse the panel', 'Zoomer':'Zoom in', 'Dézoomer':'Zoom out',
+  'Remettre le nord en haut et la carte à plat':'Reset north and flatten the map', 'Fond de carte':'Base map', 'Légende':'Legend', 'Me localiser':'Locate me', 'Sources et crédits':'Sources and credits',
+  'Inclinaison de la vue':'View tilt', 'Copier le lien vers l’aide':'Copy link to help', 'Fermer':'Close', 'Fermer (Échap)':'Close (Esc)', 'Lien copié':'Link copied',
+  // légende
+  'Ouvert aujourd’hui':'Open today', 'Ouvert, proche d’une fermeture':'Open, close to closing', 'Fermé, ouverture possible':'Closed, may open', 'Fermé':'Closed',
+  'Hors période autorisée':'Outside the permitted period', 'À vérifier (aucun seuil publié)':'To check (no published threshold)', 'Trait pointillé : état estimé (hors Wallonie)':'Dashed line: estimated status (outside Wallonia)',
+  'Parcours sélectionné':'Selected route', 'Sens du courant':'Direction of flow', 'Aires':'Access points', 'Embarquement (dans le sens du courant)':'Put-in (pointing downstream)',
+  'Débarquement (à contre-courant)':'Take-out (pointing upstream)', 'Embarquement et débarquement':'Put-in and take-out', 'Jauge de débit':'Flow gauge',
+  'Bande : débits autorisés · trait : débit actuel':'Band: permitted flows · tick: current flow',
+  // états
+  'Hors saison':'Out of season', 'Fermé (estimé)':'Closed (estimated)', 'À vérifier':'To check', 'Autorisé, à surveiller':'Allowed, keep an eye on it', 'Autorisé (estimé)':'Allowed (estimated)',
+  'Ouvert, à surveiller':'Open, keep an eye on it', 'Ouvert':'Open', 'Ouverture possible':'May open',
+  'Autorisé du 1er octobre au 15 mars':'Allowed from 1 October to 15 March', 'Pas assez d’eau':'Not enough water', 'Trop d’eau':'Too much water', 'Circulation interdite aujourd’hui':'Paddling prohibited today',
+  'Embarquement':'Put-in', 'Débarquement':'Take-out', 'Accès interdit':'No access', 'Débit':'Flow', 'Hauteur':'Level',
+  // fiche
+  '‹ Tous les parcours':'‹ All routes', 'Ne plus suivre':'Unfollow', 'Suivre cette rivière':'Follow this river', 'Rivière suivie':'Followed river', 'Pas de mesure publiée':'No published measurement',
+  'Les prochains jours':'Next few days', 'Météo indisponible.':'Weather unavailable.', 'Pas de prévision':'No outlook',
+  'Estimation basée sur le débit, sa tendance et la pluie prévue. ':'Estimate based on flow, its trend and forecast rain. ',
+  'Estimation d’après le règlement et la mesure ; aucun état officiel quotidien n’est publié.':'Estimate based on the regulations and the measurement; no official daily status is published.',
+  'Seul l’affichage officiel du jour fait foi.':'Only the official daily status is authoritative.', 'Le parcours':'The route', 'Longueur approx.':'Approx. length', 'Difficulté':'Difficulty',
+  'Période autorisée':'Permitted period', 'Nous sommes dans la période autorisée':'We are within the permitted period', 'Hors de la période autorisée':'Outside the permitted period',
+  'Toute l’année':'All year', 'Seuil à l’échelle':'Gauge threshold', 'Débits autorisés':'Permitted flows', 'Dénivelé':'Drop', 'Survoler le parcours en 3D':'Fly over the route in 3D',
+  'Embarquer et débarquer':'Put-in and take-out', 'Itinéraire':'Directions', 'Aucune aire répertoriée.':'No access point listed.',
+  'On n’embarque et ne débarque que sur les aires désignées.':'Only put in and take out at designated access points.', 'Règlement':'Regulations', 'Source du règlement':'Source of the regulations',
+  'Description':'Description (in French)', 'Lire tout':'Read more', 'Alertes':'Alerts', 'S’abonner aux alertes':'Subscribe to alerts', 'Voir sur Infokayak (site officiel)':'See on Infokayak (official site)',
+  'Pas de mesures horaires disponibles.':'No hourly measurements available.', 'Débit des 7 derniers jours':'Flow over the last 7 days',
+  '7 derniers jours. Bande turquoise : plage autorisée (pointillé = minimum).':'Last 7 days. Turquoise band: permitted range (dashed = minimum).',
+  'Départ du parcours':'Start of the route', 'Arrivée du parcours':'End of the route', 'suivie':'followed', 'Auj.':'Today',
+  // liste, chargement
+  'Pas de données':'No data', 'Impossible de charger les données':'Unable to load data', 'Mis à jour':'Updated',
+  'La page est ouverte comme fichier : ouvrez-la depuis son adresse GitHub Pages.':'The page is opened as a file: open it from its GitHub Pages address.',
+  'Les données n’ont pas encore été générées : lancez « Mise à jour des données » dans l’onglet Actions du dépôt.':'Data has not been generated yet: run “Mise à jour des données” in the repository’s Actions tab.',
+  'Vérifiez votre connexion internet puis rechargez la page.':'Check your internet connection and reload the page.',
+  'Position indisponible : autorisez la localisation dans votre navigateur.':'Location unavailable: allow location access in your browser.',
+  'Suivez des rivières depuis leur fiche.':'Follow rivers from their detail page.', 'Rien à afficher avec ces filtres.':'Nothing to show with these filters.',
+  // données générées par les scripts
+  'Débit indisponible pour le moment':'Flow currently unavailable', 'Pas de seuils de débit publiés : suivez l’état officiel du jour':'No published flow thresholds: follow the official daily status',
+  'Niveau trop haut, pluie encore attendue':'Level too high, more rain expected', 'Niveau trop haut, devrait baisser':'Level too high, should drop',
+  'Proche du minimum et en baisse : risque de fermeture':'Close to the minimum and falling: may close', 'Devrait rester praticable':'Should remain paddleable',
+  'Fermé, mais la pluie prévue pourrait suffire':'Closed, but forecast rain may be enough', 'Fermé, ouverture possible si les fortes pluies prévues se confirment':'Closed, may open if the heavy rain forecast is confirmed',
+  'Fermé, ouverture peu probable dans les 3 jours':'Closed, unlikely to open within 3 days', 'Mesure indisponible : vérifiez l’échelle sur place':'Measurement unavailable: check the gauge on site',
+  'Pas de seuil publié : vérifiez les interdictions temporaires':'No published threshold: check for temporary bans', 'Proche du seuil minimum : à surveiller':'Close to the minimum threshold: keep an eye on it',
+  'Autorisé d’après le règlement':'Allowed according to the regulations', 'Seuil réglementaire non atteint':'Regulatory threshold not reached',
+  'État non publié : vérifiez sur place ou auprès du gestionnaire':'Status not published: check on site or with the manager', 'Débit insuffisant':'Insufficient flow',
+  'Facile, portages aux barrages':'Easy, portages at weirs', 'Eau vive, réservé aux pagayeurs expérimentés':'White water, experienced paddlers only', 'Eau vive':'White water',
+  'Navigation de jour, uniquement via les pontons et aires désignés. La VMM interdit temporairement la navigation quand la profondeur descend sous 50 cm (pas de seuil d’échelle publié).':'Daytime paddling only, from designated pontoons and access points. The VMM temporarily bans paddling when depth falls below 50 cm (no published gauge threshold).',
+  'Navigation possible hors interdiction temporaire de la VMM (profondeur minimale de 50 cm).':'Paddling allowed unless the VMM issues a temporary ban (minimum depth 50 cm).',
+  'Kayak, canoë, raft et SUP autorisés selon la convention VMM ; portages obligatoires aux barrages et moulins.':'Kayak, canoe, raft and SUP allowed under the VMM agreement; portages required at weirs and mills.',
+  'Parcours de pagaie balisé (convention VMM 2024) entre Lot et Drogenbos.':'Waymarked paddling route (VMM 2024 agreement) between Lot and Drogenbos.',
+  'Autorisé du 1er octobre au 31 mars. Le ministre peut interdire temporairement si le niveau menace la faune ou la flore.':'Allowed from 1 October to 31 March. The minister may impose a temporary ban if the level threatens wildlife or plants.',
+  'Autorisé du 1er octobre au 31 mars.':'Allowed from 1 October to 31 March.',
+  'Autorisé du 15 juin au 29 février (parcours d’entraînement Ingeldorf–Diekirch ouvert toute l’année).':'Allowed from 15 June to 29 February (Ingeldorf–Diekirch training stretch open all year).',
+  'Rivière frontière LU/DE : interdit du 1er mars à la veille de la Fête-Dieu (au plus tard 14 juin), sauf Ascension tardive et Pentecôte. Ensuite, autorisé seulement si l’échelle de Bollendorf atteint 56 cm. Mise à l’eau aux seules aires désignées.':'LU/DE border river: prohibited from 1 March to the eve of Corpus Christi (14 June at the latest), except late Ascension and Whitsun. After that, allowed only if the Bollendorf gauge reaches 56 cm. Put in at designated access points only.',
+  'Même règle que l’amont : période autorisée et 56 cm minimum à Bollendorf. Le lac de Rosport-Ralingen est ouvert toute l’année.':'Same rule as upstream: permitted period and at least 56 cm at Bollendorf. The Rosport-Ralingen lake is open all year.',
+  'Période autorisée et 56 cm minimum à l’échelle de Bollendorf.':'Permitted period and at least 56 cm on the Bollendorf gauge.',
+  'Autorisé toute l’année (de Hesperange à Ettelbruck).':'Allowed all year (from Hesperange to Ettelbruck).',
+  'Autorisé du 15 juillet au 28 février, avec une autorisation (place de bateau) à réserver auprès du Kanu-Verband NRW. Le débit dépend des lâchers du barrage de Heimbach (Pegeldienst Kanu-NRW).':'Allowed from 15 July to 28 February, with a permit (boat slot) to book from the Kanu-Verband NRW. Flow depends on releases from the Heimbach dam (Pegeldienst Kanu-NRW).',
+  'Pas de seuil réglementaire publié. Débarquez aux aires des campings et loueurs ; niveau souvent trop bas en été.':'No published regulatory threshold. Take out at campsite and rental access points; level often too low in summer.',
+  'Voie navigable ouverte toute l’année : cédez le passage aux bateaux, contournez les écluses par les aires de portage.':'Waterway open all year: give way to boats, portage around locks at the designated points.',
+};
+const _ = s => LANG === 'en' && s != null ? (EN[s] ?? EN[String(s).trim()] ?? s) : s;
+// textes issus des données (scripts) : dictionnaire + motifs
+const D = s => {
+  if (LANG !== 'en' || !s) return s;
+  if (EN[s]) return EN[s];
+  let m = /^Hors période autorisée \((.*)\)$/.exec(s); if (m) return 'Outside the permitted period (' + D(m[1]) + ')';
+  return s;
+};
+function applyStatic(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-t]').forEach(e => { e.dataset.fr ??= e.textContent; e.textContent = _(e.dataset.fr); });
+  document.querySelectorAll('[aria-label],[title]').forEach(e => {
+    for (const a of ['aria-label', 'title']) if (e.hasAttribute(a)){ const k = 'fr' + a.replace('-', ''); e.dataset[k] ??= e.getAttribute(a); e.setAttribute(a, _(e.dataset[k])); }
+  });
+}
+
+const SKY = { dark:['#0b1a2a','#3a4a5a','#0e1217'], grey:['#4f6377','#8a99a8','#3b414a'], light:['#a9cbe6','#e6edf2','#eeebe4'] };
+let THEME = store.get('theme', 'dark'); if (!SKY[THEME]) THEME = 'dark';
 let DATA = null, me = null, current = null, favs = new Set(store.get('favs', [])), filters = new Set(store.get('filters', []));
 const COLORS = { ouvert:'#4cc38a', ferme:'#8b93a1', risque:'#f2c94c', possible:'#49b6c4', saison:'#5d6672', info:'#a99be0' };
 const unit = t => t.unite || 'm³/s';
-const REGIONS = { WAL:'Wallonie', VL:'Flandre et Bruxelles', LU:'Luxembourg', DE:'Allemagne', FR:'France' };
-const fmt = n => n == null ? '–' : new Intl.NumberFormat('fr-BE', { maximumFractionDigits: n < 10 ? 2 : n < 100 ? 1 : 0 }).format(n);
+const fmt = n => n == null ? '–' : new Intl.NumberFormat(LOC(), { maximumFractionDigits: n < 10 ? 2 : n < 100 ? 1 : 0 }).format(n);
 const ll = p => [p[1], p[0]]; // [lat,lon] -> [lon,lat]
 
 function state(t){
   if (t.officiel === false){
-    if (t.statut === 'saison') return { k:'saison', label:'Hors saison' };
-    if (t.statut === 'ferme') return { k:'ferme', label:'Fermé (estimé)' };
-    if (t.statut === 'info') return { k:'info', label:'À vérifier' };
-    return t.prevision?.niveau === 'risque' ? { k:'risque', label:'Autorisé, à surveiller' } : { k:'ouvert', label:'Autorisé (estimé)' };
+    if (t.statut === 'saison') return { k:'saison', label:_('Hors saison') };
+    if (t.statut === 'ferme') return { k:'ferme', label:_('Fermé (estimé)') };
+    if (t.statut === 'info') return { k:'info', label:_('À vérifier') };
+    return t.prevision?.niveau === 'risque' ? { k:'risque', label:_('Autorisé, à surveiller') } : { k:'ouvert', label:_('Autorisé (estimé)') };
   }
-  if (!t.saison) return { k:'saison', label:'Hors saison' };
-  if (t.ouvert) return t.prevision?.niveau === 'risque' ? { k:'risque', label:'Ouvert, à surveiller' } : { k:'ouvert', label:'Ouvert' };
-  if (t.prevision?.niveau === 'possible') return { k:'possible', label:'Ouverture possible' };
-  return { k:'ferme', label:'Fermé' };
+  if (!t.saison) return { k:'saison', label:_('Hors saison') };
+  if (t.ouvert) return t.prevision?.niveau === 'risque' ? { k:'risque', label:_('Ouvert, à surveiller') } : { k:'ouvert', label:_('Ouvert') };
+  if (t.prevision?.niveau === 'possible') return { k:'possible', label:_('Ouverture possible') };
+  return { k:'ferme', label:_('Fermé') };
 }
 function reason(t){
-  if (t.officiel === false) return t.justif;
-  if (!t.saison) return 'Autorisé du 1er octobre au 15 mars';
+  if (t.officiel === false) return D(t.justif);
+  if (!t.saison) return _('Autorisé du 1er octobre au 15 mars');
   if (t.ouvert) return null;
-  if (t.debit != null && t.min && t.debit < t.min) return 'Pas assez d’eau';
-  if (t.debit != null && t.max && t.debit > t.max) return 'Trop d’eau';
-  return t.justif || 'Circulation interdite aujourd’hui';
+  if (t.debit != null && t.min && t.debit < t.min) return _('Pas assez d’eau');
+  if (t.debit != null && t.max && t.debit > t.max) return _('Trop d’eau');
+  return D(t.justif) || _('Circulation interdite aujourd’hui');
 }
 function gauge(t, big){
   if (t.debit == null || !t.min) return '';
   const lo = Math.min(t.debit, t.min) / 2, hi = Math.max(t.debit, t.max || t.min * 4) * 1.3;
   const x = v => (Math.log(v) - Math.log(lo)) / (Math.log(hi) - Math.log(lo)) * 100;
   const a = x(t.min), b = t.max ? x(t.max) : 100, m = Math.max(1, Math.min(99, x(t.debit)));
-  return `<div class="gauge${big ? ' big' : ''}" role="img" aria-label="${esc(t.grandeur || 'Débit')} ${fmt(t.debit)} ${unit(t)}, seuil ${fmt(t.min)}${t.max ? ' à ' + fmt(t.max) : ''} ${unit(t)}">
+  return `<div class="gauge${big ? ' big' : ''}" role="img" aria-label="${esc(D(t.grandeur) || _('Débit'))} ${fmt(t.debit)} ${unit(t)}, ${LANG === 'en' ? 'threshold' : 'seuil'} ${fmt(t.min)}${t.max ? (LANG === 'en' ? ' to ' : ' à ') + fmt(t.max) : ''} ${unit(t)}">
     <div class="track"></div><div class="band" style="left:${a}%;width:${b - a}%"></div><div class="mark" style="left:${m}%"></div>
     <span class="lab" style="left:${a}%">min ${fmt(t.min)}</span>${t.max ? `<span class="lab" style="left:${Math.min(b, 92)}%">max ${fmt(t.max)}</span>` : ''}
   </div>`;
 }
 function spark(t){
-  const s = t.serie || []; if (s.length < 3) return '<p class="meta">Pas de mesures horaires disponibles.</p>';
+  const s = t.serie || []; if (s.length < 3) return `<p class="meta">${_('Pas de mesures horaires disponibles.')}</p>`;
   const W = 600, H = 96, P = 6, vals = s.map(p => p[1]);
   const lo = Math.min(...vals, t.min ?? Infinity) * .9, hi = Math.max(...vals, Math.min(t.max ?? 0, Math.max(...vals) * 2), t.min ?? 0) * 1.08;
   const X = i => P + i / (s.length - 1) * (W - 2 * P), Y = v => H - P - (v - lo) / (hi - lo || 1) * (H - 2 * P);
   const path = s.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ');
   const minY = t.min != null && t.min <= hi ? Y(t.min) : null, maxY = t.max != null && t.max <= hi ? Y(t.max) : null;
-  const grid = [1, 2, 3].map(k => `<line x1="0" x2="${W}" y1="${H * k / 4}" y2="${H * k / 4}" stroke="rgba(255,255,255,.06)" vector-effect="non-scaling-stroke"/>`).join('');
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Débit des 7 derniers jours">${grid}
+  const grid = [1, 2, 3].map(k => `<line x1="0" x2="${W}" y1="${H * k / 4}" y2="${H * k / 4}" style="stroke:var(--line-2)" vector-effect="non-scaling-stroke"/>`).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${_('Débit des 7 derniers jours')}">${grid}
     ${minY != null ? `<rect x="0" y="${maxY ?? 0}" width="${W}" height="${minY - (maxY ?? 0)}" fill="#49b6c4" opacity=".09"/><line x1="0" x2="${W}" y1="${minY}" y2="${minY}" stroke="#49b6c4" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/>` : ''}
     <path d="${path} L${X(s.length - 1)} ${H} L${X(0)} ${H}Z" fill="#e8a33d" opacity=".08"/>
     <path d="${path}" fill="none" stroke="#e8a33d" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
-  <p class="meta" style="margin-top:6px">7 derniers jours. Bande turquoise : plage autorisée (pointillé = minimum).</p>`;
+  <p class="meta" style="margin-top:6px">${_('7 derniers jours. Bande turquoise : plage autorisée (pointillé = minimum).')}</p>`;
 }
 const ICO = {
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
@@ -348,9 +506,9 @@ const ICO = {
 };
 const icon = (k, col) => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${col || 'currentColor'}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ICO[k]}</svg>`;
 const WX = c => c == null ? '' : c === 0 ? icon('sun', '#e8a33d') : c <= 2 ? icon('part') : c === 3 ? icon('cloud') : c <= 48 ? icon('fog') : c <= 67 || (c >= 80 && c <= 82) ? icon('rain', '#49b6c4') : c <= 77 || c === 85 || c === 86 ? icon('snow') : icon('storm', '#f2c94c');
-const fmtMm = n => n == null ? '–' : n < 0.05 ? '0' : new Intl.NumberFormat('fr-BE', { maximumFractionDigits: n < 10 ? 1 : 0 }).format(n);
+const fmtMm = n => n == null ? '–' : n < 0.05 ? '0' : new Intl.NumberFormat(LOC(), { maximumFractionDigits: n < 10 ? 1 : 0 }).format(n);
 const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
-const dayName = d => d === todayISO() ? 'Auj.' : new Date(d + 'T12:00').toLocaleDateString('fr-BE', { weekday:'short' });
+const dayName = d => d === todayISO() ? _('Auj.') : new Date(d + 'T12:00').toLocaleDateString(LOC(), { weekday:'short' });
 function distKm(a, b){ const R = 6371, r = Math.PI/180, dl = (b[0]-a[0])*r, dn = (b[1]-a[1])*r; return 2*R*Math.asin(Math.sqrt(Math.sin(dl/2)**2 + Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2)); }
 const start = t => t.trace?.[0] || (a => a ? [a.lat, a.lon] : t.lignes?.[0]?.[0])(t.aires.find(x => x.type === 'E' || x.type === 'ED'));
 const shortName = t => t.nom.replace(/^(La|Le|L')\s?[^,]*?(,\s*|\s(?=de |entre |en aval|du |à ))/i, '').replace(/^./, c => c.toUpperCase());
@@ -373,7 +531,7 @@ const map = new maplibregl.Map({
       { id:'hillshade', type:'hillshade', source:'hillshadeSource', paint:{ 'hillshade-exaggeration':0.45, 'hillshade-shadow-color':'#1a120a', 'hillshade-highlight-color':'#fff6e0', 'hillshade-accent-color':'#2a1c10' } },
     ],
     terrain: terrainOn ? { source:'terrainSource', exaggeration:1.6 } : undefined,
-    sky:{ 'sky-color':'#0b1a2a', 'horizon-color':'#3a4a5a', 'fog-color':'#0e1217', 'fog-ground-blend':0.5, 'sky-horizon-blend':0.5, 'horizon-fog-blend':0.6 },
+    sky:{ 'sky-color':SKY[THEME][0], 'horizon-color':SKY[THEME][1], 'fog-color':SKY[THEME][2], 'fog-ground-blend':0.5, 'sky-horizon-blend':0.5, 'horizon-fog-blend':0.6 },
   },
   center:[5.35, 50.05], zoom:7.6, maxPitch:80, attributionControl:false,
 });
@@ -392,12 +550,12 @@ $('#pitch-slider').oninput = e => map.setPitch(+e.target.value);
 const pop = $('#basemap-pop');
 $('#basemap-btn').onclick = e => { e.stopPropagation(); const o = pop.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', o); };
 document.addEventListener('click', e => { if (!pop.contains(e.target)) pop.classList.remove('open'); });
-function syncMenu(){ pop.querySelectorAll('[data-bm]').forEach(b => b.setAttribute('aria-checked', b.dataset.bm === basemap)); $('#terrain-btn').setAttribute('aria-checked', terrainOn); $('#terrain-btn').textContent = (terrainOn ? '✓ ' : '') + 'Relief 3D'; }
+function syncMenu(){ pop.querySelectorAll('[data-bm]').forEach(b => b.setAttribute('aria-checked', b.dataset.bm === basemap)); $('#terrain-btn').setAttribute('aria-checked', terrainOn); $('#terrain-btn').textContent = (terrainOn ? '✓ ' : '') + _('Relief 3D'); }
 pop.querySelectorAll('[data-bm]').forEach(b => b.onclick = () => { basemap = b.dataset.bm; store.set('basemap', basemap); for (const k in BASEMAPS) map.setLayoutProperty(k, 'visibility', k === basemap ? 'visible' : 'none'); syncMenu(); });
 $('#terrain-btn').onclick = () => { terrainOn = !terrainOn; store.set('terrain', terrainOn); map.setTerrain(terrainOn ? { source:'terrainSource', exaggeration:1.6 } : null); map.setLayoutProperty('hillshade', 'visibility', terrainOn ? 'visible' : 'none'); syncMenu(); };
 syncMenu();
 function credits(){
-  const used = [BASEMAPS[basemap].attribution, terrainOn ? 'Relief © AWS Open Data / Mapzen' : null, 'Données © SPW (Infokayak, hydrométrie), VMM/waterinfo.be, AGE Luxembourg (heichwaasser.lu), Hub’Eau · Tracés © OpenStreetMap · Météo Open-Meteo · Rendu MapLibre'].filter(Boolean);
+  const used = [BASEMAPS[basemap].attribution, terrainOn ? 'Relief © AWS Open Data / Mapzen' : null, LANG === 'en' ? 'Data © SPW (Infokayak, hydrometry), VMM/waterinfo.be, AGE Luxembourg (heichwaasser.lu), Hub’Eau · Lines © OpenStreetMap · Weather Open-Meteo · Rendering MapLibre' : 'Données © SPW (Infokayak, hydrométrie), VMM/waterinfo.be, AGE Luxembourg (heichwaasser.lu), Hub’Eau · Tracés © OpenStreetMap · Météo Open-Meteo · Rendu MapLibre'].filter(Boolean);
   $('#attrib').innerHTML = used.join('<br>');
 }
 $('#legend-btn').onclick = e => { e.stopPropagation(); const h = $('#legend').hidden = !$('#legend').hidden; e.currentTarget.setAttribute('aria-expanded', !h); };
@@ -411,7 +569,7 @@ function locate(cb){
     const el = document.createElement('div'); el.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#49b6c4;border:3px solid #fff;box-shadow:0 0 0 4px rgba(73,182,196,.3)';
     meMarker?.remove(); meMarker = new maplibregl.Marker({ element:el }).setLngLat(ll(me)).addTo(map);
     cb?.();
-  }, () => { $('#notices').innerHTML = '<div class="notice">Position indisponible : autorisez la localisation dans votre navigateur.</div>'; filters.delete('pres'); render(); });
+  }, () => { $('#notices').innerHTML = `<div class="notice">${_('Position indisponible : autorisez la localisation dans votre navigateur.')}</div>`; filters.delete('pres'); render(); });
 }
 $('#locate').onclick = () => locate(() => map.flyTo({ center:ll(me), zoom:10, padding:panelPad() }));
 
@@ -487,7 +645,7 @@ function addData(){
     map.on('mouseleave', l, () => map.getCanvas().style.cursor = '');
   }
   const tip = new maplibregl.Popup({ closeButton:false, closeOnClick:false, offset:10 });
-  map.on('mousemove', 'aires', e => { const p = e.features[0].properties; tip.setLngLat(e.lngLat).setHTML(`<b>${esc(p.nom)}</b><br>${{E:'Embarquement',D:'Débarquement',ED:'Embarquement et débarquement'}[p.type] || ''}`).addTo(map); });
+  map.on('mousemove', 'aires', e => { const p = e.features[0].properties; tip.setLngLat(e.lngLat).setHTML(`<b>${esc(p.nom)}</b><br>${_({E:'Embarquement',D:'Débarquement',ED:'Embarquement et débarquement'}[p.type]) || ''}`).addTo(map); });
   map.on('mouseleave', 'aires', () => tip.remove());
   // étiquettes : couche de symboles (anti-chevauchement, taille selon le zoom), point au milieu du parcours
   const mid = tr => { let tot = 0; const d = []; for (let i = 1; i < tr.length; i++){ const x = Math.hypot(tr[i][0]-tr[i-1][0], (tr[i][1]-tr[i-1][1]) * .65); d.push(x); tot += x; }
@@ -535,15 +693,16 @@ function render(){
   shown.sort((a, b) => filters.has('pres') && me ? a._d - b._d : (order[state(a).k] - order[state(b).k]) || a.riviere.localeCompare(b.riviere));
   const nOpen = ts.filter(t => t.ouvert).length;
   const nOpenS = shown.filter(t => t.ouvert).length;
-  $('#summary').innerHTML = nOpenS === 0 ? `Aucun parcours ouvert aujourd’hui sur ${shown.length}` : `<b>${nOpenS}</b> parcours ouvert${nOpenS > 1 ? 's' : ''} aujourd’hui sur ${shown.length}`;
+  $('#summary').innerHTML = LANG === 'en' ? (nOpenS === 0 ? `No route open today out of ${shown.length}` : `<b>${nOpenS}</b> route${nOpenS > 1 ? 's' : ''} open today out of ${shown.length}`)
+    : nOpenS === 0 ? `Aucun parcours ouvert aujourd’hui sur ${shown.length}` : `<b>${nOpenS}</b> parcours ouvert${nOpenS > 1 ? 's' : ''} aujourd’hui sur ${shown.length}`;
   $('#list').innerHTML = shown.length ? shown.map(t => {
     const st = state(t), r = reason(t);
     return `<li class="row" data-id="${esc(t.id)}" tabindex="0">
-      <div class="name">${esc(t.riviere)}${favs.has(t.id) ? ' <span style="color:var(--accent)" aria-label="suivie">★</span>' : ''}</div>
+      <div class="name">${esc(t.riviere)}${favs.has(t.id) ? ` <span style="color:var(--accent)" aria-label="${_('suivie')}">★</span>` : ''}</div>
       <span class="badge s-${st.k}">${st.label}</span>
-      <div class="sub">${t.officiel === false ? esc(t.region) + ' · ' : ''}${esc(shortName(t))}${t.longueurKm ? ` · ${fmt(t.longueurKm)} km` : ''}${t._d != null && filters.has('pres') ? ` · à ${Math.round(t._d)} km` : ''}${r ? `<br>${esc(r)}` : ''}</div>
+      <div class="sub">${t.officiel === false ? esc(D(t.region)) + ' · ' : ''}${esc(shortName(t))}${t.longueurKm ? ` · ${fmt(t.longueurKm)} km` : ''}${t._d != null && filters.has('pres') ? (LANG === 'en' ? ` · ${Math.round(t._d)} km away` : ` · à ${Math.round(t._d)} km`) : ''}${r ? `<br>${esc(r)}` : ''}</div>
       ${gauge(t)}
-    </li>`; }).join('') : `<li class="row"><div class="sub">Rien à afficher avec ces filtres. ${filters.has('fav') ? 'Suivez des rivières depuis leur fiche.' : ''}</div></li>`;
+    </li>`; }).join('') : `<li class="row"><div class="sub">${_('Rien à afficher avec ces filtres.')} ${filters.has('fav') ? _('Suivez des rivières depuis leur fiche.') : ''}</div></li>`;
   if (map.getLayer('river-line')) filterMap(shown.map(t => t.id));
   document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', filters.has(c.dataset.f)));
 }
@@ -568,62 +727,63 @@ function bearingOf(a, b){ // cap géographique de a vers b ([lat,lon])
   const r = Math.PI/180, y = Math.sin((b[1]-a[1])*r)*Math.cos(b[0]*r), x = Math.cos(a[0]*r)*Math.sin(b[0]*r) - Math.sin(a[0]*r)*Math.cos(b[0]*r)*Math.cos((b[1]-a[1])*r);
   return (Math.atan2(y, x) / r + 360) % 360;
 }
-const COMPASS = ['nord','nord-est','est','sud-est','sud','sud-ouest','ouest','nord-ouest'];
-function openFiche(id, push = true){
+const COMPASS = ['nord','nord-est','est','sud-est','sud','sud-ouest','ouest','nord-ouest'], COMPASS_EN = ['north','north-east','east','south-east','south','south-west','west','north-west'];
+function openFiche(id, push = true, reframe = true){
   const t = DATA.troncons.find(x => x.id === id); if (!t) return;
   current = id;
   const st = state(t), r = reason(t), v = $('#view-fiche');
   const days = (t.meteo || []).filter(d => d.date >= todayISO()).slice(0, 4);
   const pr = t.prevision || {};
-  const typ = { ED:'E/D', E:'E', D:'D', NA:'✕' }, typLong = { ED:'Embarquement et débarquement', E:'Embarquement', D:'Débarquement', NA:'Accès interdit' };
+  const typLong = Object.fromEntries(Object.entries({ ED:'Embarquement et débarquement', E:'Embarquement', D:'Débarquement', NA:'Accès interdit' }).map(([k, v]) => [k, _(v)]));
+  const G = D(t.grandeur) || _('Débit');
   const tr = t.trace, cap = tr?.length > 1 ? bearingOf(tr[0], tr.at(-1)) : null;
   const drop = t.altitudes ? Math.round(t.altitudes[0] - t.altitudes[1]) : null;
   v.innerHTML = `
-    <button class="back" id="close">‹ Tous les parcours</button>
+    <button class="back" id="close">${_('‹ Tous les parcours')}</button>
     <header class="fhead">
       <div class="ftitle"><h2>${esc(t.riviere)}</h2>
-        <button class="star" id="fav" aria-pressed="${favs.has(t.id)}" aria-label="${favs.has(t.id) ? 'Ne plus suivre' : 'Suivre cette rivière'}" title="${favs.has(t.id) ? 'Rivière suivie' : 'Suivre cette rivière'}">${favs.has(t.id) ? '★' : '☆'}</button></div>
-      <p class="where">${esc(t.nom)}${t.region ? ' · ' + esc(t.region) : ''}</p>
+        <button class="star" id="fav" aria-pressed="${favs.has(t.id)}" aria-label="${_(favs.has(t.id) ? 'Ne plus suivre' : 'Suivre cette rivière')}" title="${_(favs.has(t.id) ? 'Rivière suivie' : 'Suivre cette rivière')}">${favs.has(t.id) ? '★' : '☆'}</button></div>
+      <p class="where">${esc(t.nom)}${t.region ? ' · ' + esc(D(t.region)) : ''}</p>
       <div class="status"><span class="badge s-${st.k}">${st.label}</span>${r ? `<span class="why">${esc(r)}</span>` : ''}</div>
     </header>
-    <div class="card"><h3>${esc(t.grandeur || 'Débit')}</h3>
+    <div class="card"><h3>${esc(G)}</h3>
       <p class="big-q">${fmt(t.debit)} <small>${unit(t)}</small></p>
-      <p class="meta">${t.debit == null ? 'Pas de mesure publiée' : t.debitHeure ? 'Mesuré le ' + esc(t.debitHeure.slice(8,10) + '/' + t.debitHeure.slice(5,7) + ' à ' + t.debitHeure.slice(11,16)) : 'Relevé officiel du ' + esc(t.officiel?.date || '?')} · station ${esc(t.station?.nom || t.station?.code)}</p>
+      <p class="meta">${t.debit == null ? _('Pas de mesure publiée') : t.debitHeure ? (LANG === 'en' ? 'Measured on ' : 'Mesuré le ') + esc(t.debitHeure.slice(8,10) + '/' + t.debitHeure.slice(5,7) + (LANG === 'en' ? ' at ' : ' à ') + t.debitHeure.slice(11,16)) : (LANG === 'en' ? 'Official reading of ' : 'Relevé officiel du ') + esc(t.officiel?.date || '?')} · station ${esc(t.station?.nom || t.station?.code)}</p>
       ${gauge(t, true)}
     </div>
-    <div class="card"><h3>Les prochains jours</h3>
-      ${days.length ? `<div class="days">${days.map(d => `<div class="day"><div class="d">${dayName(d.date)}</div><div class="i" aria-hidden="true">${WX(d.code)}</div><div class="r">${d.pluie == null ? '–' : fmtMm(d.pluie) + ' mm'}</div><div class="d">${d.tmax != null ? Math.round(d.tmax) + '°' : ''}</div></div>`).join('')}</div>` : '<p class="meta">Météo indisponible.</p>'}
-      <div class="outlook o-${esc(pr.niveau)}"><span class="dot"></span><div><b>${esc(pr.texte || 'Pas de prévision')}</b><small>${t.officiel === false ? '' : 'Estimation basée sur le débit, sa tendance et la pluie prévue. '}${t.officiel === false ? 'Estimation d’après le règlement et la mesure ; aucun état officiel quotidien n’est publié.' : 'Seul l’affichage officiel du jour fait foi.'}</small></div></div>
+    <div class="card"><h3>${_('Les prochains jours')}</h3>
+      ${days.length ? `<div class="days">${days.map(d => `<div class="day"><div class="d">${dayName(d.date)}</div><div class="i" aria-hidden="true">${WX(d.code)}</div><div class="r">${d.pluie == null ? '–' : fmtMm(d.pluie) + ' mm'}</div><div class="d">${d.tmax != null ? Math.round(d.tmax) + '°' : ''}</div></div>`).join('')}</div>` : `<p class="meta">${_('Météo indisponible.')}</p>`}
+      <div class="outlook o-${esc(pr.niveau)}"><span class="dot"></span><div><b>${esc(D(pr.texte) || _('Pas de prévision'))}</b><small>${t.officiel === false ? '' : _('Estimation basée sur le débit, sa tendance et la pluie prévue. ')}${t.officiel === false ? _('Estimation d’après le règlement et la mesure ; aucun état officiel quotidien n’est publié.') : _('Seul l’affichage officiel du jour fait foi.')}</small></div></div>
     </div>
-    <div class="card"><h3>${esc(t.grandeur || 'Débit')} sur 7 jours</h3>${spark(t)}</div>
-    <div class="card"><h3>Le parcours</h3>
+    <div class="card"><h3>${esc(G)} ${LANG === 'en' ? 'over 7 days' : 'sur 7 jours'}</h3>${spark(t)}</div>
+    <div class="card"><h3>${_('Le parcours')}</h3>
       <div class="stats">
-        ${t.longueurKm ? `<div class="stat"><span class="l">Longueur approx.</span><span class="v">${fmt(t.longueurKm)} km</span></div>` : ''}
-        ${t.difficulte ? `<div class="stat"><span class="l">Difficulté</span><span class="v">${esc(t.difficulte)}</span></div>` : ''}
-        <div class="stat"><span class="l">Période autorisée</span><span class="v" style="color:${t.saison ? 'var(--ok)' : 'var(--danger)'}" title="${t.saison ? 'Nous sommes dans la période autorisée' : 'Hors de la période autorisée'}">${t.saisonsTexte || (t.annexe === '1C' ? '1/10 – 15/3' : 'Toute l’année')}</span></div>
-        ${t.min != null ? `<div class="stat"><span class="l">${t.unite === 'cm' || t.unite === 'm' ? 'Seuil à l’échelle' : 'Débits autorisés'}</span><span class="v">${t.max != null ? fmt(t.min) + ' – ' + fmt(t.max) : 'min. ' + fmt(t.min)} ${unit(t)}</span></div>` : ''}
-        ${drop != null && drop > 0 ? `<div class="stat"><span class="l">Dénivelé</span><span class="v">−${drop} m</span></div>` : ''}
+        ${t.longueurKm ? `<div class="stat"><span class="l">${_('Longueur approx.')}</span><span class="v">${fmt(t.longueurKm)} km</span></div>` : ''}
+        ${t.difficulte ? `<div class="stat"><span class="l">${_('Difficulté')}</span><span class="v">${esc(D(t.difficulte))}</span></div>` : ''}
+        <div class="stat"><span class="l">${_('Période autorisée')}</span><span class="v" style="color:${t.saison ? 'var(--ok)' : 'var(--danger)'}" title="${_(t.saison ? 'Nous sommes dans la période autorisée' : 'Hors de la période autorisée')}">${D(t.saisonsTexte) || (t.annexe === '1C' ? '1/10 – 15/3' : _('Toute l’année'))}</span></div>
+        ${t.min != null ? `<div class="stat"><span class="l">${_(t.unite === 'cm' || t.unite === 'm' ? 'Seuil à l’échelle' : 'Débits autorisés')}</span><span class="v">${t.max != null ? fmt(t.min) + ' – ' + fmt(t.max) : 'min. ' + fmt(t.min)} ${unit(t)}</span></div>` : ''}
+        ${drop != null && drop > 0 ? `<div class="stat"><span class="l">${_('Dénivelé')}</span><span class="v">−${drop} m</span></div>` : ''}
       </div>
-      ${cap != null ? `<div class="flow"><svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate(${cap}deg)"><circle cx="13" cy="13" r="12" fill="none" stroke="#33404b"/><path d="M13 5v15M8 10l5-5 5 5" fill="none" stroke="#49b6c4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>La rivière coule vers ${(c => /^[eo]/.test(c) ? 'l’' + c : 'le ' + c)(COMPASS[Math.round(cap / 45) % 8])}. Les flèches sur la carte montrent le sens du courant.</span></div>` : ''}
-      <p style="margin:10px 0 0"><button class="link" id="fly">Survoler le parcours en 3D</button></p>
+      ${cap != null ? `<div class="flow"><svg width="26" height="26" viewBox="0 0 26 26" style="transform:rotate(${cap}deg)"><circle cx="13" cy="13" r="12" fill="none" style="stroke:var(--line-strong)"/><path d="M13 5v15M8 10l5-5 5 5" fill="none" stroke="#49b6c4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${LANG === 'en' ? `The river flows ${COMPASS_EN[Math.round(cap / 45) % 8]}. Arrows on the map show the direction of flow.` : `La rivière coule vers ${(c => /^[eo]/.test(c) ? 'l’' + c : 'le ' + c)(COMPASS[Math.round(cap / 45) % 8])}. Les flèches sur la carte montrent le sens du courant.`}</span></div>` : ''}
+      <p style="margin:10px 0 0"><button class="link" id="fly">${_('Survoler le parcours en 3D')}</button></p>
     </div>
-    <div class="card"><h3>Embarquer et débarquer</h3>
-      ${t.aires.length ? t.aires.map((a, i) => `<div class="aire"><span class="t" title="${typLong[a.type] || ''}">${a.type === 'NA' ? '✕' : kayakSvg(a.type, 22, flowBearingAt(t, a.lat, a.lon) - map.getBearing()).replace('<svg ', `<svg data-rot="${flowBearingAt(t, a.lat, a.lon)}" `)}</span><div class="n" data-i="${i}">${esc(a.nom)}<small>${esc(typLong[a.type] || '')}${a.info ? ' · ' + esc(a.info) : ''}</small></div>${a.type !== 'NA' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lon}" target="_blank" rel="noopener">Itinéraire</a>` : ''}</div>`).join('') : '<p class="meta">Aucune aire répertoriée.</p>'}
-      <p class="meta" style="margin:8px 0 0">On n’embarque et ne débarque que sur les aires désignées.</p>
+    <div class="card"><h3>${_('Embarquer et débarquer')}</h3>
+      ${t.aires.length ? t.aires.map((a, i) => `<div class="aire"><span class="t" title="${typLong[a.type] || ''}">${a.type === 'NA' ? '✕' : kayakSvg(a.type, 22, flowBearingAt(t, a.lat, a.lon) - map.getBearing()).replace('<svg ', `<svg data-rot="${flowBearingAt(t, a.lat, a.lon)}" `)}</span><div class="n" data-i="${i}">${esc(D(a.nom))}<small>${esc(typLong[a.type] || '')}${a.info ? ' · ' + esc(a.info) : ''}</small></div>${a.type !== 'NA' ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lon}" target="_blank" rel="noopener">${_('Itinéraire')}</a>` : ''}</div>`).join('') : `<p class="meta">${_('Aucune aire répertoriée.')}</p>`}
+      <p class="meta" style="margin:8px 0 0">${_('On n’embarque et ne débarque que sur les aires désignées.')}</p>
     </div>
-    ${t.officiel === false ? `<div class="card"><h3>Règlement</h3><div class="desc">${esc(t.regle)}</div><p class="meta" style="margin:8px 0 0">État estimé par l’app d’après ce règlement et la mesure ci-dessus${t.traceApprox ? ' ; tracé approximatif' : ''}. Vérifiez les interdictions temporaires.</p>${t.source ? `<a class="link" href="${esc(t.source)}" target="_blank" rel="noopener">Source du règlement</a>` : ''}</div>` : ''}
-    ${t.description && t.officiel !== false ? `<div class="card"><h3>Description</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">Lire tout</button></div>` : ''}
-    ${DATA.alertes ? `<div class="card"><h3>Alertes</h3><p style="margin:0 0 10px;font-size:13px">Recevez une notification quand ${favs.size ? 'une rivière suivie' : 'un parcours'} ouvre ou ferme : installez l’app gratuite ntfy, puis abonnez-vous.</p><a class="btn" href="${esc(DATA.alertes.url)}" target="_blank" rel="noopener">S’abonner aux alertes</a></div>` : ''}
-    ${t.officiel === false ? '' : '<a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">Voir sur Infokayak (site officiel)</a>'}`;
+    ${t.officiel === false ? `<div class="card"><h3>${_('Règlement')}</h3><div class="desc">${esc(D(t.regle))}</div><p class="meta" style="margin:8px 0 0">${LANG === 'en' ? `Status estimated by the app from these regulations and the measurement above${t.traceApprox ? '; approximate line' : ''}. Check for temporary bans.` : `État estimé par l’app d’après ce règlement et la mesure ci-dessus${t.traceApprox ? ' ; tracé approximatif' : ''}. Vérifiez les interdictions temporaires.`}</p>${t.source ? `<a class="link" href="${esc(t.source)}" target="_blank" rel="noopener">${_('Source du règlement')}</a>` : ''}</div>` : ''}
+    ${t.description && t.officiel !== false ? `<div class="card"><h3>${_('Description')}</h3><div class="desc short" id="desc">${esc(t.description)}</div><button class="link" id="more">${_('Lire tout')}</button></div>` : ''}
+    ${DATA.alertes ? `<div class="card"><h3>${_('Alertes')}</h3><p style="margin:0 0 10px;font-size:13px">${LANG === 'en' ? `Get a notification when ${favs.size ? 'a followed river' : 'a route'} opens or closes: install the free ntfy app, then subscribe.` : `Recevez une notification quand ${favs.size ? 'une rivière suivie' : 'un parcours'} ouvre ou ferme : installez l’app gratuite ntfy, puis abonnez-vous.`}</p><a class="btn" href="${esc(DATA.alertes.url)}" target="_blank" rel="noopener">${_('S’abonner aux alertes')}</a></div>` : ''}
+    ${t.officiel === false ? '' : `<a href="https://kayak.spw.wallonie.be/public/home" target="_blank" rel="noopener" class="link">${_('Voir sur Infokayak (site officiel)')}</a>`}`;
   $('#view-list').hidden = true; v.hidden = false; document.body.classList.add('fiche-open'); $('#panel').scrollTop = 0;
   if (isSheet() && sheetState === 'peek') setSheet('half');
   $('#close').onclick = () => history.state?.fiche ? history.back() : closeFiche();
-  $('#fav').onclick = e => { favs.has(t.id) ? favs.delete(t.id) : favs.add(t.id); store.set('favs', [...favs]); e.target.setAttribute('aria-pressed', favs.has(t.id)); e.target.textContent = favs.has(t.id) ? '★' : '☆'; render(); };
+  $('#fav').onclick = e => { favs.has(t.id) ? favs.delete(t.id) : favs.add(t.id); store.set('favs', [...favs]); e.target.setAttribute('aria-pressed', favs.has(t.id)); e.target.textContent = favs.has(t.id) ? '★' : '☆'; e.target.setAttribute('aria-label', _(favs.has(t.id) ? 'Ne plus suivre' : 'Suivre cette rivière')); render(); };
   $('#more')?.addEventListener('click', e => { $('#desc').classList.remove('short'); e.target.remove(); });
   $('#fly').onclick = () => flyAlong(t);
   v.querySelectorAll('.aire .n').forEach(n => n.onclick = () => { const a = t.aires[+n.dataset.i]; map.flyTo({ center:[a.lon, a.lat], zoom:15, pitch:60, padding:panelPad() }); });
   if (map.getLayer('river-sel')) map.setFilter('river-sel', ['==',['get','id'], id]);
-  frame(t);
+  if (reframe) frame(t);
   if (push) history.pushState({ fiche:id }, '', '#' + id);
 }
 function frame(t){
@@ -650,10 +810,18 @@ function closeFiche(){
   current = null; $('#view-fiche').hidden = true; $('#view-list').hidden = false; document.body.classList.remove('fiche-open');
   if (map.getLayer('river-sel')) map.setFilter('river-sel', ['==',['get','id'],'']);
 }
-window.addEventListener('popstate', e => e.state?.fiche ? openFiche(e.state.fiche, false) : closeFiche());
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && current) $('#close').click(); });
+window.addEventListener('popstate', e => { if (!e.state?.aide && !$('#help').hidden){ $('#help').hidden = true; return; } if (e.state?.aide) return; e.state?.fiche ? openFiche(e.state.fiche, false) : closeFiche(); });
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; if (!$('#help').hidden) closeHelp(); else if (!$('#set-pop').hidden) $('#set-pop').hidden = true; else if (current) $('#close').click(); });
 
 // ---------- Données ----------
+function setMaj(){
+  const d = new Date(DATA.maj), age = (Date.now() - d) / 36e5, en = LANG === 'en';
+  $('#maj').innerHTML = _('Mis à jour') + '<br>' + d.toLocaleString(LOC(), { weekday:'short', hour:'2-digit', minute:'2-digit' });
+  const notes = [], src = [...new Set((DATA.erreurs || []).map(e => e.split(':')[0]))].map(x => en ? x.replace('hors Wallonie', 'outside Wallonia') : x).join(', ');
+  if (age > 6) notes.push(en ? `Data is ${Math.round(age)} h old: automatic updates seem to have stopped.` : `Données vieilles de ${Math.round(age)} h : la mise à jour automatique semble arrêtée.`);
+  if (DATA.erreurs?.length) notes.push(en ? `Some sources did not respond (${src}): partial information.` : `Certaines sources n’ont pas répondu (${src}) : informations partielles.`);
+  $('#notices').innerHTML = notes.map(n => `<div class="notice">${esc(n)}</div>`).join('');
+}
 async function load(){
   let status = 0;
   try {
@@ -661,17 +829,12 @@ async function load(){
     status = r.status; if (!r.ok) throw new Error(r.status);
     DATA = await r.json();
   } catch {
-    $('#maj').textContent = 'Pas de données'; $('#summary').textContent = 'Impossible de charger les données';
-    $('#notices').innerHTML = `<div class="notice">${location.protocol === 'file:' ? 'La page est ouverte comme fichier : ouvrez-la depuis son adresse GitHub Pages.' : status === 404 ? 'Les données n’ont pas encore été générées : lancez « Mise à jour des données » dans l’onglet Actions du dépôt.' : 'Vérifiez votre connexion internet puis rechargez la page.'}</div>`;
+    $('#maj').textContent = _('Pas de données'); $('#summary').textContent = _('Impossible de charger les données');
+    $('#notices').innerHTML = `<div class="notice">${_(location.protocol === 'file:' ? 'La page est ouverte comme fichier : ouvrez-la depuis son adresse GitHub Pages.' : status === 404 ? 'Les données n’ont pas encore été générées : lancez « Mise à jour des données » dans l’onglet Actions du dépôt.' : 'Vérifiez votre connexion internet puis rechargez la page.')}</div>`;
     return;
   }
-  const d = new Date(DATA.maj), age = (Date.now() - d) / 36e5;
-  $('#maj').innerHTML = 'Mis à jour<br>' + d.toLocaleString('fr-BE', { weekday:'short', hour:'2-digit', minute:'2-digit' });
-  const notes = [];
-  if (age > 6) notes.push(`Données vieilles de ${Math.round(age)} h : la mise à jour automatique semble arrêtée.`);
-  if (DATA.erreurs?.length) notes.push('Certaines sources n’ont pas répondu (' + [...new Set(DATA.erreurs.map(e => e.split(':')[0]))].join(', ') + ') : informations partielles.');
-  $('#notices').innerHTML = notes.map(n => `<div class="notice">${esc(n)}</div>`).join('');
-  const ready = () => { addData(); render(); const h = decodeURIComponent(location.hash.slice(1)); if (h) openFiche(h, false); else fitShown(); };
+  setMaj();
+  const ready = () => { addData(); render(); const h = decodeURIComponent(location.hash.slice(1)); if (h && h !== 'aide') openFiche(h, false); else fitShown(); };
   // n'attend pas les tuiles (un fond ou le relief indisponible ne doit pas bloquer les rivières)
   let done = false; const go = () => { if (!done && map.isStyleLoaded()) { done = true; ready(); } };
   go(); if (!done) { map.once('style.load', go); map.once('load', go); const iv = setInterval(() => { go(); if (done) clearInterval(iv); }, 200); }
@@ -722,6 +885,103 @@ map.on('zoom', () => document.body.classList.toggle('zoom-low', map.getZoom() < 
 map.on('movestart', e => { if (e.originalEvent && isSheet() && sheetState === 'full') setSheet('half'); });
 
 $('#legend').innerHTML = $('#legend').innerHTML.replace('${K_E}', kayakSvg('E', 24)).replace('${K_D}', kayakSvg('D', 24)).replace('${K_ED}', kayakSvg('ED', 24));
+// ---------- Aide ----------
+const LG = (c, t) => `<div class="lg"><i style="background:${c}"></i><span>${t}</span></div>`;
+const HELP = {
+  fr: { title:'Aide · Mise à l’eau', sections:[
+    ['principe', 'Principe', `<p>L’app indique où l’on peut mettre un kayak ou un canoë à l’eau <b>aujourd’hui</b> en Wallonie, en Flandre et à Bruxelles, au Luxembourg, dans les Ardennes françaises et dans l’Eifel. Les données sont mises à jour toutes les heures.</p>
+      <p class="note">En Wallonie, l’état vient d’Infokayak (SPW) : c’est l’état officiel du jour. Ailleurs, aucun état officiel quotidien n’existe : l’app <b>estime</b> l’état d’après le règlement (période autorisée, seuil d’échelle) et la dernière mesure. Vérifiez toujours sur place et les interdictions temporaires.</p>`],
+    ['liste', 'La liste', `<p>Chaque ligne montre la rivière, le tronçon, l’état et, si un seuil existe, une jauge : la <b>bande turquoise</b> représente les débits autorisés, le <b>trait orange</b> le débit actuel.</p>
+      ${LG('var(--ok)','Ouvert (ou autorisé, estimé)')}${LG('var(--warn)','Ouvert, mais proche d’une fermeture')}${LG('var(--accent-2)','Fermé, ouverture possible dans les 3 jours')}${LG('var(--text-muted)','Fermé')}${LG('var(--muted-2)','Hors période autorisée')}${LG('var(--info)','À vérifier : aucun seuil publié')}
+      <p style="margin-top:8px"><b>Filtres :</b> « Ouverts » ne garde que les parcours ouverts, « ★ Suivies » vos rivières suivies, « Près de moi » trie par distance (localisation requise). La liste déroulante limite à une région.</p>`],
+    ['fiche', 'La fiche d’un parcours', `<p>Touchez une ligne ou un tracé sur la carte pour ouvrir la fiche :</p>
+      <ul><li><b>Débit ou hauteur</b> mesuré, avec l’heure et la station ;</li>
+      <li><b>Les prochains jours</b> : météo, pluie et une tendance indicative (jamais officielle) ;</li>
+      <li><b>Débit sur 7 jours</b> avec la plage autorisée ;</li>
+      <li><b>Le parcours</b> : longueur, difficulté, période autorisée, seuils, sens du courant et survol en 3D ;</li>
+      <li><b>Embarquer et débarquer</b> : aires désignées et lien d’itinéraire ;</li>
+      <li><b>☆</b> pour suivre la rivière (filtre « Suivies » et alertes).</li></ul>`],
+    ['carte', 'La carte', `<p>Les tracés sont colorés selon l’état ; en <b>pointillé</b>, l’état est estimé (hors Wallonie). Les petites flèches blanches indiquent le sens du courant.</p>
+      <p>Aires : <b>kayak vert</b> = embarquement, pointé vers l’aval ; <b>kayak orange</b> = débarquement, pointé vers l’amont ; les deux superposés = embarquement et débarquement.</p>
+      <p>Boutons à droite : zoom, boussole (remet le nord en haut et la carte à plat), fond de carte et relief 3D, légende, localisation. La barre verticale règle l’inclinaison ; le bouton « i » affiche les sources.</p>
+      <p>Sur téléphone, tirez la poignée du panneau pour passer de l’aperçu à la moitié ou au plein écran.</p>`],
+    ['alertes', 'Alertes', `<p>Depuis une fiche, « S’abonner aux alertes » ouvre un canal <b>ntfy</b> : installez l’app gratuite ntfy pour recevoir une notification quand un parcours ouvre ou ferme.</p>`],
+    ['reglages', 'Réglages', `<p>Le bouton ⚙ en haut du panneau permet de choisir le thème (foncé, gris ou clair) et la langue (français ou anglais). Ces choix sont mémorisés sur l’appareil, comme vos rivières suivies et vos filtres.</p>
+      <p>L’app s’installe sur l’écran d’accueil (« Ajouter à l’écran d’accueil ») et garde la dernière version des données hors connexion.</p>
+      <p>Raccourcis : <kbd>Échap</kbd> ferme une fiche ou cette aide ; <kbd>Entrée</kbd> ouvre la ligne sélectionnée.</p>`],
+    ['sources', 'Sources', `<p>SPW (Infokayak, hydrométrie), VMM/waterinfo.be, AGE Luxembourg (heichwaasser.lu), Hub’Eau, OpenStreetMap, Open-Meteo. Imagerie Esri, relief AWS/Mapzen, rendu MapLibre.</p>`],
+  ]},
+  en: { title:'Help · Mise à l’eau', sections:[
+    ['principe', 'How it works', `<p>The app shows where you can put a kayak or canoe in the water <b>today</b> in Wallonia, Flanders and Brussels, Luxembourg, the French Ardennes and the Eifel. Data is refreshed every hour.</p>
+      <p class="note">In Wallonia, the status comes from Infokayak (SPW): it is the official daily status. Elsewhere there is no official daily status: the app <b>estimates</b> it from the regulations (permitted period, gauge threshold) and the latest measurement. Always check on site and look out for temporary bans.</p>`],
+    ['liste', 'The list', `<p>Each row shows the river, the stretch, the status and, when a threshold exists, a gauge: the <b>turquoise band</b> is the permitted flow range, the <b>orange tick</b> the current flow.</p>
+      ${LG('var(--ok)','Open (or allowed, estimated)')}${LG('var(--warn)','Open, but close to closing')}${LG('var(--accent-2)','Closed, may open within 3 days')}${LG('var(--text-muted)','Closed')}${LG('var(--muted-2)','Outside the permitted period')}${LG('var(--info)','To check: no published threshold')}
+      <p style="margin-top:8px"><b>Filters:</b> “Open” keeps only open routes, “★ Followed” your followed rivers, “Near me” sorts by distance (location required). The drop-down limits to one region.</p>`],
+    ['fiche', 'Route details', `<p>Tap a row or a line on the map to open the details:</p>
+      <ul><li><b>Flow or level</b> measured, with time and station;</li>
+      <li><b>Next few days</b>: weather, rain and an indicative outlook (never official);</li>
+      <li><b>7-day flow</b> with the permitted range;</li>
+      <li><b>The route</b>: length, difficulty, permitted period, thresholds, direction of flow and a 3D fly-over;</li>
+      <li><b>Put-in and take-out</b>: designated access points and a directions link;</li>
+      <li><b>☆</b> to follow the river (“Followed” filter and alerts).</li></ul>
+      <p class="note">River descriptions and some official notes are only available in French.</p>`],
+    ['carte', 'The map', `<p>Lines are coloured by status; <b>dashed</b> lines mean an estimated status (outside Wallonia). Small white arrows show the direction of flow.</p>
+      <p>Access points: <b>green kayak</b> = put-in, pointing downstream; <b>orange kayak</b> = take-out, pointing upstream; both stacked = put-in and take-out.</p>
+      <p>Buttons on the right: zoom, compass (resets north and flattens the map), base map and 3D terrain, legend, location. The vertical slider sets the tilt; the “i” button shows the sources.</p>
+      <p>On a phone, drag the panel handle to switch between preview, half and full screen.</p>`],
+    ['alertes', 'Alerts', `<p>From a route, “Subscribe to alerts” opens an <b>ntfy</b> channel: install the free ntfy app to get a notification when a route opens or closes.</p>`],
+    ['reglages', 'Settings', `<p>The ⚙ button at the top of the panel lets you pick the theme (dark, grey or light) and the language (French or English). These choices are saved on the device, like your followed rivers and filters.</p>
+      <p>The app can be installed on the home screen (“Add to Home Screen”) and keeps the latest data available offline.</p>
+      <p>Shortcuts: <kbd>Esc</kbd> closes a route or this help; <kbd>Enter</kbd> opens the selected row.</p>`],
+    ['sources', 'Sources', `<p>SPW (Infokayak, hydrometry), VMM/waterinfo.be, AGE Luxembourg (heichwaasser.lu), Hub’Eau, OpenStreetMap, Open-Meteo. Imagery Esri, terrain AWS/Mapzen, rendering MapLibre.</p>`],
+  ]},
+};
+function renderHelp(){
+  const h = HELP[LANG];
+  $('#help-title').textContent = h.title;
+  $('#help-nav').innerHTML = h.sections.map(([id, t]) => `<a href="#h-${id}" data-h="${id}">${t}</a>`).join('');
+  $('#help-body').innerHTML = h.sections.map(([id, t, html]) => `<h3 id="h-${id}">${t}</h3>${html}`).join('');
+}
+function openHelp(){
+  renderHelp(); $('#help').hidden = false; $('#help-close').focus();
+  if (location.hash !== '#aide') history.pushState({ aide:true }, '', '#aide');
+}
+function closeHelp(){ if (!$('#help').hidden){ $('#help').hidden = true; if (history.state?.aide) history.back(); else if (location.hash === '#aide') history.replaceState(null, '', location.pathname + location.search); } }
+$('#help-btn').onclick = openHelp; $('#set-help').onclick = () => { $('#set-pop').hidden = true; openHelp(); };
+$('#help-close').onclick = closeHelp;
+$('#help').addEventListener('click', e => { if (e.target.id === 'help') closeHelp(); });
+$('#help-nav').addEventListener('click', e => { const a = e.target.closest('a[data-h]'); if (!a) return; e.preventDefault(); $('#h-' + a.dataset.h).scrollIntoView({ behavior:'smooth', block:'start' }); });
+$('#help-link').onclick = e => {
+  const url = location.origin + location.pathname + '#aide', b = e.currentTarget;
+  const done = () => { b.textContent = '✓'; setTimeout(() => b.textContent = '🔗', 1400); };
+  navigator.clipboard?.writeText(url).then(done, () => prompt(_('Copier le lien vers l’aide'), url)) ?? prompt(_('Copier le lien vers l’aide'), url);
+};
+
+// ---------- Réglages : thème et langue ----------
+function setTheme(t){
+  THEME = SKY[t] ? t : 'dark'; store.set('theme', THEME);
+  if (THEME === 'dark') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', THEME);
+  document.querySelector('meta[name=theme-color]').content = SKY[THEME][2];
+  try { map.setSky({ 'sky-color':SKY[THEME][0], 'horizon-color':SKY[THEME][1], 'fog-color':SKY[THEME][2], 'fog-ground-blend':0.5, 'sky-horizon-blend':0.5, 'horizon-fog-blend':0.6 }); } catch {}
+  syncSettings();
+}
+function setLang(l){
+  LANG = l === 'en' ? 'en' : 'fr'; store.set('lang', LANG);
+  applyStatic(); syncMenu(); syncSettings();
+  if (DATA){ setMaj(); render(); if (current){ const y = $('#panel').scrollTop; openFiche(current, false, false); $('#panel').scrollTop = y; } }
+  if (!$('#help').hidden) renderHelp();
+  if (!$('#attrib').hidden) credits();
+}
+function syncSettings(){
+  $('#seg-theme').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === THEME));
+  $('#seg-lang').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === LANG));
+}
+$('#seg-theme').onclick = e => { const b = e.target.closest('button'); if (b) setTheme(b.dataset.v); };
+$('#seg-lang').onclick = e => { const b = e.target.closest('button'); if (b) setLang(b.dataset.v); };
+$('#set-btn').onclick = e => { e.stopPropagation(); const o = $('#set-pop').hidden = !$('#set-pop').hidden; e.currentTarget.setAttribute('aria-expanded', !o); if (!o && isSheet() && sheetState === 'peek') setSheet('half'); };
+document.addEventListener('click', e => { if (!$('#set-pop').contains(e.target) && e.target.closest('#set-btn') == null){ $('#set-pop').hidden = true; $('#set-btn').setAttribute('aria-expanded', false); } });
+applyStatic(); syncMenu(); setTheme(THEME); if (!DATA) $('#maj').textContent = _('Chargement…');
+if (location.hash === '#aide'){ history.replaceState(null, '', location.pathname + location.search); openHelp(); }
 load();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
