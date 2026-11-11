@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources><string name="app_name">Mise à l\'eau</string></resources>
+<resources>
+    <string name="app_name">Mise à l\'eau</string>
+    <string name="widget_desc">Rivières suivies et parcours ouverts aujourd\'hui</string>
+</resources>

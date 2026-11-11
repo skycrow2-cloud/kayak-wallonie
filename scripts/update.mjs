@@ -349,6 +349,21 @@ async function main() {
   await mkdir(OUT.split('/').slice(0, -1).join('/') || '.', { recursive: true });
   const alertes = NTFY_TOPIC ? { url: `${NTFY_SERVER}/${encodeURIComponent(NTFY_TOPIC)}`, suivis: WATCH } : null;
   await writeFile(OUT, JSON.stringify({ maj: new Date().toISOString(), erreurs: errors, alertes, troncons: out }));
+  // résumé léger pour le widget Android (mêmes règles d'état que state() dans index.html)
+  const etat = t => {
+    if (t.officiel === false) {
+      if (t.statut === 'saison') return ['saison', 'Hors saison'];
+      if (t.statut === 'ferme') return ['ferme', 'Fermé (estimé)'];
+      if (t.statut === 'info') return ['info', 'À vérifier'];
+      return t.prevision?.niveau === 'risque' ? ['risque', 'À surveiller (estimé)'] : ['ouvert', 'Autorisé (estimé)'];
+    }
+    if (!t.saison) return ['saison', 'Hors saison'];
+    if (t.ouvert) return t.prevision?.niveau === 'risque' ? ['risque', 'Ouvert, à surveiller'] : ['ouvert', 'Ouvert'];
+    if (t.prevision?.niveau === 'possible') return ['possible', 'Ouverture possible'];
+    return ['ferme', 'Fermé'];
+  };
+  const W = out.map(t => { const [k, label] = etat(t); return { id: t.id, riviere: t.riviere, region: t.region || 'Wallonie', k, label }; });
+  await writeFile(OUT.replace(/[^/]+$/, 'widget.json'), JSON.stringify({ maj: new Date().toISOString(), total: W.length, ouverts: out.filter(t => t.ouvert).length, troncons: W }));
   console.log(`OK : ${out.length} tronçons, ${out.filter(r => r.ouvert).length} ouverts, ${Object.keys(flows).length} séries de débit, météo ${Object.keys(meteo).length}. Erreurs: ${errors.length ? errors.join(' | ') : 'aucune'}`);
 }
 

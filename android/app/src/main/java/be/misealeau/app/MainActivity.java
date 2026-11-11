@@ -39,6 +39,9 @@ public class MainActivity extends Activity {
 
         web.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageFinished(WebView v, String url) { syncFavs(); }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
                 if (u.toString().startsWith(HOME)) return false;
@@ -75,7 +78,17 @@ public class MainActivity extends Activity {
 
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }
     @Override protected void onResume() { super.onResume(); web.onResume(); }
-    @Override protected void onPause() { web.onPause(); super.onPause(); }
+    @Override protected void onPause() { syncFavs(); web.onPause(); super.onPause(); }
+
+    /** Copie les rivières suivies (★, localStorage « favs ») pour le widget, puis le rafraîchit. */
+    private void syncFavs() {
+        web.evaluateJavascript("localStorage.getItem('favs')", r -> {
+            String favs = "[]";
+            try { if (r != null && !r.equals("null")) favs = new org.json.JSONArray(new org.json.JSONTokener(r).nextValue().toString()).toString(); } catch (Exception ignored) {}
+            getSharedPreferences(KayakWidget.PREFS, MODE_PRIVATE).edit().putString("favs", favs).apply();
+            KayakWidget.refresh(this, null);
+        });
+    }
 
     @Override
     public void onBackPressed() {
