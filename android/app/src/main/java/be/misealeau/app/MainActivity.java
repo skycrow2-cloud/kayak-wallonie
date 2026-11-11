@@ -16,7 +16,7 @@ import android.webkit.WebViewClient;
 
 /** Coquille Android : affiche le site « Mise à l'eau » en plein écran. */
 public class MainActivity extends Activity {
-    private static final String HOME = "https://skycrow2-cloud.github.io/kayak-wallonie/";
+    static final String HOME = "https://skycrow2-cloud.github.io/kayak-wallonie/";
     private static final int REQ_LOC = 1;
     private WebView web;
     private String geoOrigin;
@@ -74,6 +74,19 @@ public class MainActivity extends Activity {
             geoCallback.invoke(geoOrigin, ok, false);
             geoCallback = null;
         }
+    }
+
+    /** Ouverture depuis le widget alors que l'app tourne déjà : afficher la fiche demandée. */
+    @Override
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        if (i.getData() == null) return;
+        String url = i.getData().toString();
+        if (!url.startsWith(HOME)) return;
+        String id = i.getData().getFragment();
+        if (id == null || id.isEmpty()) { web.loadUrl(url); return; }
+        String js = "try{openFiche(" + org.json.JSONObject.quote(id) + ")}catch(e){location.href=" + org.json.JSONObject.quote(url) + ";location.reload()}";
+        web.evaluateJavascript(js, null);
     }
 
     @Override protected void onSaveInstanceState(Bundle out) { super.onSaveInstanceState(out); web.saveState(out); }

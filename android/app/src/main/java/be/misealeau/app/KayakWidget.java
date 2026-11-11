@@ -98,6 +98,10 @@ public class KayakWidget extends AppWidgetProvider {
                     v.setTextColor(DOT[i], col);
                     v.setTextViewText(NAME[i], t.optString("riviere") + (t.optString("region").equals("Wallonie") ? "" : " · " + t.optString("region")));
                     v.setTextViewText(STATE[i], t.optString("label")); v.setTextColor(STATE[i], col);
+                    // toucher une ligne : ouvre l'app directement sur la fiche du parcours
+                    Intent fiche = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(MainActivity.HOME + "#" + android.net.Uri.encode(t.optString("id"))), ctx, MainActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    v.setOnClickPendingIntent(ROW[i], PendingIntent.getActivity(ctx, 100 + i, fiche, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
                 } else v.setViewVisibility(ROW[i], android.view.View.GONE);
             }
         } catch (Exception e) {
