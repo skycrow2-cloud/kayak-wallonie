@@ -1,4 +1,4 @@
-# Kayak Wallonie
+# Mise à l’eau
 
 Carte 3D des parcours de kayak en Wallonie : état du jour, débit en direct, sens du courant, prévision indicative sur 3 jours, aires d'embarquement et alertes push.
 

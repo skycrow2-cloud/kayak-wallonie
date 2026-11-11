@@ -1,7 +1,7 @@
 {
-  "name": "Kayak Wallonie",
-  "short_name": "Kayak",
-  "description": "Où peut-on faire du kayak en Wallonie aujourd'hui ?",
+  "name": "Mise à l’eau – kayak & canoë",
+  "short_name": "Mise à l’eau",
+  "description": "Où peut-on mettre son kayak à l’eau aujourd’hui ? Wallonie, Flandre, Luxembourg, Ardennes françaises, Eifel.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
