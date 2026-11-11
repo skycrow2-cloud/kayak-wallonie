@@ -882,8 +882,16 @@ function setSheet(st, px){
   // faire défiler la liste vers le haut depuis l'aperçu ouvre le tiroir
   panel.addEventListener('wheel', e => { if (isSheet() && sheetState === 'peek' && e.deltaY > 0) setSheet('half'); }, { passive:true });
   new ResizeObserver(syncSheetVar).observe(panel);
-  const onResize = () => { if (isSheet()) setSheet(sheetState); else { document.documentElement.style.removeProperty('--sheet-h'); document.body.classList.remove('sheet-peek','sheet-half','sheet-full'); } };
-  addEventListener('resize', onResize); onResize();
+  const onResize = () => {
+    if (isSheet()) setSheet(sheetState);
+    else { ['--sheet-h','--sheet-px'].forEach(v => document.documentElement.style.removeProperty(v)); document.body.classList.remove('sheet-peek','sheet-half','sheet-full','sheet-dragging'); }
+  };
+  // rotation : sur téléphone, « resize » peut arriver avant que les media queries soient à jour, on revérifie après coup
+  const later = () => { onResize(); setTimeout(onResize, 150); setTimeout(onResize, 500); };
+  addEventListener('resize', onResize); addEventListener('orientationchange', later);
+  screen.orientation?.addEventListener?.('change', later);
+  matchMedia('(max-width:760px) and (min-height:501px)').addEventListener?.('change', later);
+  onResize();
 })();
 map.on('zoom', () => document.body.classList.toggle('zoom-low', map.getZoom() < 8.6));
 // toucher la carte en plein écran ramène le tiroir à mi-hauteur
